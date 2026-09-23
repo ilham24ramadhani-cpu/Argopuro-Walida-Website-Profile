@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}Peta kebun — {{ company.nama }}{% endblock %}
+{% block head %}
+<link
+  rel="stylesheet"
+  href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+  integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+  crossorigin=""
+/>
+{% endblock %}
+{% block content %}
+<div class="peta-layout">
+  <aside class="peta-side">
+    <div class="peta-side-head">
+      <h2>Kebun</h2>
+      <p>Peta kebun mitra Argopuro Walida.</p>
+      <input class="search" id="farm-search" type="search" placeholder="Cari nama, petani, varietas" />
+    </div>
+    <div id="farm-status" class="status-box">Memuat polygon…</div>
+    <div class="farm-list" id="farm-list" hidden></div>
+  </aside>
+  <div class="map-pane">
+    <div id="map" class="map-root"></div>
+    <aside class="detail-panel" id="detail-panel" hidden>
+      <header>
+        <button type="button" class="detail-close" id="detail-close" aria-label="Tutup">×</button>
+        <div class="detail-code" id="detail-code"></div>
+        <strong id="detail-name"></strong>
+      </header>
+      <dl>
+        <div>
+          <dt>Petani</dt>
+          <dd id="detail-petani">—</dd>
+        </div>
+        <div>
+          <dt>Luas lahan</dt>
+          <dd id="detail-luas">—</dd>
+        </div>
+        <div>
+          <dt>Jumlah cherry</dt>
+          <dd id="detail-cherry">—</dd>
+        </div>
+        <div>
+          <dt>Potential GB</dt>
+          <dd id="detail-gb">—</dd>
+        </div>
+        <div>
+          <dt>Varietas</dt>
+          <dd id="detail-varietas">—</dd>
+        </div>
+        <div>
+          <dt>MDPL</dt>
+          <dd id="detail-mdpl">—</dd>
+        </div>
+      </dl>
+    </aside>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script
+  src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+  integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+  crossorigin=""
+></script>
+<script src="{{ url_for('script_file', filename='peta.js') }}"></script>
+{% endblock %}

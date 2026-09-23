@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block title %}{{ company.nama }}{% endblock %}</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='logo.png') }}" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Nunito+Sans:ital,opsz,wght@0,6..12,400;0,6..12,500;0,6..12,600;0,6..12,700;0,6..12,800;1,6..12,400&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+    {% block head %}{% endblock %}
+  </head>
+  <body>
+    <div class="site{% if request.endpoint == 'peta' %} map-mode{% endif %}">
+      <header class="nav">
+        <a href="{{ url_for('home') }}" class="brand">
+          <img src="{{ url_for('static', filename='logo.png') }}" alt="" />
+          <span class="brand-name">{{ company.nama }}</span>
+        </a>
+        <button class="nav-toggle" type="button" aria-label="Menu">☰</button>
+        <nav class="nav-links">
+          <a href="{{ url_for('home') }}" class="{% if request.endpoint == 'home' %}active{% endif %}">Beranda</a>
+          <a href="{{ url_for('tentang') }}" class="{% if request.endpoint == 'tentang' %}active{% endif %}">Tentang</a>
+          <a href="{{ url_for('proses') }}" class="{% if request.endpoint == 'proses' %}active{% endif %}">Proses</a>
+          <a href="{{ url_for('peta') }}" class="{% if request.endpoint == 'peta' %}active{% endif %}">Peta kebun</a>
+          <a href="{{ url_for('kontak') }}" class="{% if request.endpoint == 'kontak' %}active{% endif %}">Kontak</a>
+        </nav>
+      </header>
+
+      <div class="{% if request.endpoint == 'peta' %}main-map{% else %}main{% endif %}">
+        {% block content %}{% endblock %}
+      </div>
+
+      {% if request.endpoint != 'peta' %}
+      <footer class="footer">{{ company.nama }} · {{ company.bidang }}</footer>
+      {% endif %}
+    </div>
+    <script src="{{ url_for('script_file', filename='main.js') }}"></script>
+    {% block scripts %}{% endblock %}
+  </body>
+</html>
