@@ -1,8 +1,13 @@
 [phases.setup]
-nixPkgs = ["nodejs_20", "python311", "python311Packages.pip"]
+nixPkgs = ["nodejs_20", "python311", "python311Packages.pip", "python311Packages.setuptools", "python311Packages.wheel"]
 
 [phases.install]
-cmds = ["npm ci", "python -m pip install --break-system-packages -r requirements.txt"]
+cmds = [
+  "npm ci",
+  "python -c \"import urllib.request; urllib.request.urlretrieve('https://bootstrap.pypa.io/get-pip.py', '/tmp/get-pip.py')\"",
+  "python /tmp/get-pip.py --break-system-packages",
+  "python -m pip install --break-system-packages -r requirements.txt"
+]
 
 [phases.build]
 cmds = ["npm run build"]
