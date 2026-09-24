@@ -63,6 +63,11 @@ def find_polygon(polygon_id):
     return coll.find_one({"$or": clauses})
 
 
+@app.get("/health")
+def health():
+    return jsonify({"status": "ok"}), 200
+
+
 @app.get("/")
 def home():
     return render_template("index.html")
