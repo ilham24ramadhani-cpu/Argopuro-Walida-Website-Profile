@@ -2,8 +2,8 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { createBooking, fetchPolygon } from '../api/walida';
 import { KETERANGAN_PEMBAYARAN } from '../content/payment';
-import { formatKg, formatRp } from '../utils/format';
-import { displayName } from '../utils/polygon';
+import { formatKg } from '../utils/format';
+import { displayName, petaniNama } from '../utils/polygon';
 import {
   clearBookingDraft,
   loadBookingDraft,
@@ -105,6 +105,12 @@ export default function Checkout() {
             <span>Petak</span>
             <strong>{draft.namaPolygon || displayName(item) || draft.idPolygon}</strong>
           </div>
+          {petaniNama(item) ? (
+            <div>
+              <span>Petani</span>
+              <strong>{petaniNama(item)}</strong>
+            </div>
+          ) : null}
           <div>
             <span>Proses</span>
             <strong>{draft.prosesPengolahan}</strong>
@@ -112,14 +118,6 @@ export default function Checkout() {
           <div>
             <span>Jumlah</span>
             <strong>{formatKg(draft.jumlahPesananKg)}</strong>
-          </div>
-          <div>
-            <span>Harga / kg</span>
-            <strong>{formatRp(draft.hargaPerKg)}</strong>
-          </div>
-          <div>
-            <span>Perkiraan total</span>
-            <strong>{formatRp(draft.productPrice)}</strong>
           </div>
         </div>
       </section>

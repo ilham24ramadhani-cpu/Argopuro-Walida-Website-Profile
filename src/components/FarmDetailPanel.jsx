@@ -1,10 +1,12 @@
 import { Link } from 'react-router-dom';
-import { formatHa, formatKg, formatMeter, formatRp } from '../utils/format';
+import PetaniAvatar from './PetaniAvatar';
+import { formatHa, formatKg, formatMeter } from '../utils/format';
 import {
   availableStock,
   displayName,
   isSoldOut,
   landAreaHa,
+  petaniNama,
   processNames,
 } from '../utils/polygon';
 
@@ -16,6 +18,7 @@ export default function FarmDetailPanel({ item, onClose }) {
   const soldOut = isSoldOut(item);
   const pembeli = Array.isArray(item.pembeliBooking) ? item.pembeliBooking : [];
   const id = item.idPolygon || item.id;
+  const namaPetani = petaniNama(item);
 
   return (
     <aside className="detail-panel">
@@ -28,11 +31,16 @@ export default function FarmDetailPanel({ item, onClose }) {
         {soldOut ? <span className="badge-habis">Habis</span> : null}
       </header>
 
-      <dl>
-        <div>
-          <dt>Pemasok</dt>
-          <dd>{item.pemasok || '—'}</dd>
+      <div className="petani-block">
+        <PetaniAvatar item={item} size="md" />
+        <div className="petani-block-text">
+          <span className="petani-label">Petani</span>
+          <strong>{namaPetani || '—'}</strong>
+          {item.idPetani ? <span className="petani-id">{item.idPetani}</span> : null}
         </div>
+      </div>
+
+      <dl>
         <div>
           <dt>Jumlah cherry</dt>
           <dd>{formatKg(item.jumlahCherry)}</dd>
@@ -45,12 +53,6 @@ export default function FarmDetailPanel({ item, onClose }) {
           <dt>Potential GB tersedia</dt>
           <dd>{stock == null ? '—' : formatKg(stock)}</dd>
         </div>
-        {item.hargaPerKg != null && item.hargaPerKg !== '' ? (
-          <div>
-            <dt>Harga / kg</dt>
-            <dd>{formatRp(item.hargaPerKg)}</dd>
-          </div>
-        ) : null}
         <div>
           <dt>Varietas</dt>
           <dd>{item.varietas || '—'}</dd>
@@ -95,7 +97,7 @@ export default function FarmDetailPanel({ item, onClose }) {
 
       <div className="detail-actions">
         <Link className="btn btn-block" to={`/lahan/${encodeURIComponent(id)}`}>
-          Check
+          Book
         </Link>
       </div>
     </aside>

@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { fetchPolygon } from '../api/walida';
-import { formatKg, formatRp } from '../utils/format';
+import { formatKg } from '../utils/format';
 import {
   availableStock,
   displayName,
+  petaniNama,
   processNames,
 } from '../utils/polygon';
 import { saveBookingDraft } from '../utils/bookingDraft';
@@ -109,8 +110,9 @@ export default function BookingForm() {
       <p className="kicker">Booking</p>
       <h1>{displayName(item)}</h1>
       <p className="lede">
-        Stok tersedia: {stock == null ? '—' : formatKg(stock)}
-        {harga != null ? ` · ${formatRp(harga)} / kg` : ''}
+        {[petaniNama(item), `Stok tersedia: ${stock == null ? '—' : formatKg(stock)}`]
+          .filter(Boolean)
+          .join(' · ')}
       </p>
 
       <form className="booking-form" onSubmit={onSubmit}>
@@ -139,12 +141,6 @@ export default function BookingForm() {
             required
           />
         </label>
-
-        <div className="price-box">
-          <span>Product price (perkiraan)</span>
-          <strong>{productPrice == null ? '—' : formatRp(productPrice)}</strong>
-          <small>Total final dihitung server saat checkout.</small>
-        </div>
 
         {formError ? <p className="form-error">{formError}</p> : null}
 

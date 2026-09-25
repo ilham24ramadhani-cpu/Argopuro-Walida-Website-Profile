@@ -2,12 +2,20 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { fetchPolygon, fetchPolygons } from '../api/walida';
 import FarmMap from '../components/FarmMap';
 import FarmDetailPanel from '../components/FarmDetailPanel';
-import { farmId, displayName } from '../utils/polygon';
+import {
+  farmId,
+  displayName,
+  petaniNama,
+  processNames,
+} from '../utils/polygon';
+
+const MDPL_OPTIONS = [1200, 1600, 1800];
 
 export default function Peta() {
   const [items, setItems] = useState([]);
   const [status, setStatus] = useState({ text: 'Memuat polygon…', error: false });
-  const [query, setQuery] = useState('');
+  const [mdplFilter, setMdplFilter] = useState('');
+  const [prosesFilter, setProsesFilter] = useState('');
   const [selectedId, setSelectedId] = useState(null);
   const [selected, setSelected] = useState(null);
 
@@ -35,17 +43,26 @@ export default function Peta() {
     };
   }, []);
 
-  const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    if (!q) return items;
-    return items.filter((item) => {
-      const hay = [item.namaKml, item.idPolygon, item.pemasok, item.varietas]
-        .filter(Boolean)
-        .join(' ')
-        .toLowerCase();
-      return hay.includes(q);
+  const prosesOptions = useMemo(() => {
+    const set = new Set();
+    items.forEach((item) => {
+      processNames(item).forEach((p) => set.add(p));
     });
-  }, [items, query]);
+    return Array.from(set).sort((a, b) => a.localeCompare(b, 'id'));
+  }, [items]);
+
+  const filtered = useMemo(() => {
+    return items.filter((item) => {
+      if (mdplFilter !== '') {
+        const mdpl = Number(item.mdpl);
+        if (Number.isNaN(mdpl) || mdpl !== Number(mdplFilter)) return false;
+      }
+      if (prosesFilter) {
+        if (!processNames(item).includes(prosesFilter)) return false;
+      }
+      return true;
+    });
+  }, [items, mdplFilter, prosesFilter]);
 
   const onSelect = useCallback((id) => {
     setSelectedId(id);
@@ -76,13 +93,36 @@ export default function Peta() {
         <div className="peta-side-head">
           <h2>Kebun</h2>
           <p>Peta kebun mitra Argopuro Walida. Klik petak untuk detail & booking.</p>
-          <input
-            className="search"
-            type="search"
-            placeholder="Cari nama, petani, varietas"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-          />
+          <div className="peta-filters">
+            <label>
+              MDPL
+              <select
+                value={mdplFilter}
+                onChange={(e) => setMdplFilter(e.target.value)}
+              >
+                <option value="">Semua</option>
+                {MDPL_OPTIONS.map((m) => (
+                  <option key={m} value={m}>
+                    {m} m
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label>
+              Proses pengolahan
+              <select
+                value={prosesFilter}
+                onChange={(e) => setProsesFilter(e.target.value)}
+              >
+                <option value="">Semua</option>
+                {prosesOptions.map((p) => (
+                  <option key={p} value={p}>
+                    {p}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
         </div>
         {status.text ? (
           <div className={`status-box${status.error ? ' error' : ''}`}>{status.text}</div>
@@ -91,6 +131,7 @@ export default function Peta() {
           <div className="farm-list">
             {filtered.map((item) => {
               const id = farmId(item);
+              const petani = petaniNama(item);
               return (
                 <button
                   key={id}
@@ -100,7 +141,7 @@ export default function Peta() {
                 >
                   <strong>{displayName(item)}</strong>
                   <span>
-                    {[item.pemasok, item.varietas].filter(Boolean).join(' · ') ||
+                    {[petani, item.varietas].filter(Boolean).join(' · ') ||
                       item.idPolygon ||
                       ''}
                   </span>
@@ -108,6 +149,8 @@ export default function Peta() {
               );
             })}
           </div>
+        ) : !status.text ? (
+          <div className="status-box">Tidak ada petak yang cocok dengan filter.</div>
         ) : null}
       </aside>
       <div className="map-pane">

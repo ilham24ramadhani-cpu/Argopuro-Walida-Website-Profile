@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { fetchPolygon } from '../api/walida';
-import { formatHa, formatKg, formatMeter, formatRp } from '../utils/format';
+import PetaniAvatar from '../components/PetaniAvatar';
+import { formatHa, formatKg, formatMeter } from '../utils/format';
 import {
   availableStock,
   displayName,
   isSoldOut,
   landAreaHa,
+  petaniNama,
   processNames,
 } from '../utils/polygon';
 
@@ -60,6 +62,7 @@ export default function Lahan() {
   const stock = availableStock(item);
   const soldOut = isSoldOut(item);
   const pembeli = Array.isArray(item.pembeliBooking) ? item.pembeliBooking : [];
+  const namaPetani = petaniNama(item);
   const canBook =
     !soldOut &&
     stock != null &&
@@ -73,11 +76,16 @@ export default function Lahan() {
       <h1>{displayName(item)}</h1>
       <p className="lede">{item.idPolygon}</p>
 
-      <div className="info-grid">
-        <div>
-          <span>Pemasok</span>
-          <strong>{item.pemasok || '—'}</strong>
+      <div className="petani-hero">
+        <PetaniAvatar item={item} size="lg" />
+        <div className="petani-block-text">
+          <span className="petani-label">Petani</span>
+          <strong>{namaPetani || '—'}</strong>
+          {item.idPetani ? <span className="petani-id">{item.idPetani}</span> : null}
         </div>
+      </div>
+
+      <div className="info-grid">
         <div>
           <span>Jumlah cherry</span>
           <strong>{formatKg(item.jumlahCherry)}</strong>
@@ -89,14 +97,6 @@ export default function Lahan() {
         <div>
           <span>Potential GB tersedia</span>
           <strong>{stock == null ? '—' : formatKg(stock)}</strong>
-        </div>
-        <div>
-          <span>Harga / kg</span>
-          <strong>
-            {item.hargaPerKg != null && item.hargaPerKg !== ''
-              ? formatRp(item.hargaPerKg)
-              : 'Belum diisi admin'}
-          </strong>
         </div>
         <div>
           <span>Varietas</span>
@@ -157,7 +157,7 @@ export default function Lahan() {
             navigate(`/lahan/${encodeURIComponent(item.idPolygon)}/booking`)
           }
         >
-          Booking
+          Book
         </button>
         <Link className="btn btn-ghost" to="/peta">
           Kembali ke peta

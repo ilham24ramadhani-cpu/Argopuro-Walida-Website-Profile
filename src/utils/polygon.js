@@ -12,6 +12,32 @@ export function displayName(item) {
   return nama || item.idPolygon || `Polygon ${item.id ?? ''}`;
 }
 
+/** Nama petani (fallback pemasok lama dari API). */
+export function petaniNama(item) {
+  return (item?.petani || item?.pemasok || '').trim();
+}
+
+/** URL absolut foto profil petani, atau '' jika tidak ada. */
+export function petaniFotoUrl(item) {
+  if (item?.fotoPetaniFullUrl) return item.fotoPetaniFullUrl;
+  const path = item?.fotoPetaniUrl;
+  if (!path) return '';
+  if (typeof path === 'string' && path.startsWith('http')) return path;
+  const base = (import.meta.env.VITE_WALIDA_API || '').replace(/\/$/, '');
+  return base ? `${base}${path}` : path;
+}
+
+/** Inisial untuk placeholder avatar. */
+export function petaniInisial(item) {
+  const nama = petaniNama(item);
+  if (!nama) return '?';
+  const parts = nama.split(/\s+/).filter(Boolean);
+  if (parts.length >= 2) {
+    return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+  }
+  return nama.slice(0, 2).toUpperCase();
+}
+
 export function landAreaHa(item) {
   if (item?.luasHektar != null && item.luasHektar !== '') {
     const n = Number(item.luasHektar);
