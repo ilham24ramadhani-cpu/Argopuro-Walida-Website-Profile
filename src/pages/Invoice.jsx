@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useLocation, useParams } from 'react-router-dom';
 import { fetchBookingInvoice } from '../api/walida';
-import { KETERANGAN_PEMBAYARAN } from '../content/payment';
-import { formatKg, formatRp } from '../utils/format';
+import InvoiceDocument from '../components/InvoiceDocument';
 import { loadLastInvoice } from '../utils/bookingDraft';
 
 function normalizeInvoice(payload) {
@@ -21,9 +20,25 @@ export default function Invoice() {
     normalizeInvoice(location.state?.response || loadLastInvoice()),
   );
   const [error, setError] = useState('');
+  const [pdfBusy, setPdfBusy] = useState(false);
+  const [pdfMsg, setPdfMsg] = useState('');
 
   useEffect(() => {
-    if (data?.invoice) return undefined;
+    const fromState = normalizeInvoice(location.state?.response);
+    if (fromState?.invoice) {
+      const id = fromState.invoice.idPembelian;
+      if (!id || id === idPembelian) {
+        setData(fromState);
+        return undefined;
+      }
+    }
+
+    const cached = normalizeInvoice(loadLastInvoice());
+    if (cached?.invoice?.idPembelian === idPembelian) {
+      setData(cached);
+      return undefined;
+    }
+
     let cancelled = false;
     fetchBookingInvoice(idPembelian)
       .then((res) => {
@@ -31,22 +46,44 @@ export default function Invoice() {
       })
       .catch((err) => {
         if (!cancelled) {
-          setError(
-            err.message ||
-              'Invoice tidak bisa dimuat. Endpoint GET /api/booking mungkin belum tersedia.',
-          );
+          if (cached?.invoice) {
+            setData(cached);
+          } else {
+            setError(
+              err.message ||
+                'Invoice tidak bisa dimuat. Endpoint GET /api/booking mungkin belum tersedia.',
+            );
+          }
         }
       });
     return () => {
       cancelled = true;
     };
-  }, [idPembelian, data]);
+  }, [idPembelian, location.state]);
 
   const invoice = data?.invoice;
-  const pembeli = invoice?.pembeli || {};
   const pesanan = invoice?.pesanan || {};
-  const pembayaran =
-    invoice?.keteranganPembayaran || KETERANGAN_PEMBAYARAN;
+
+  const onDownloadPdf = async () => {
+    if (!invoice) return;
+    setPdfBusy(true);
+    setPdfMsg('');
+    try {
+      const { downloadBookingInvoicePdf } = await import(
+        '../utils/bookingInvoicePdf'
+      );
+      const name = await downloadBookingInvoicePdf(invoice);
+      setPdfMsg(`PDF diunduh: ${name}`);
+    } catch (err) {
+      setPdfMsg(err.message || 'Gagal membuat PDF.');
+    } finally {
+      setPdfBusy(false);
+    }
+  };
+
+  const onPrintPage = () => {
+    window.print();
+  };
 
   if (!invoice && error) {
     return (
@@ -69,87 +106,40 @@ export default function Invoice() {
   }
 
   return (
-    <div className="wrap booking-wrap">
-      <p className="kicker">Invoice</p>
-      <h1>{invoice.idPembelian || idPembelian}</h1>
-      <p className="lede">
-        Tanggal: {invoice.tanggalPemesanan || '—'} · Status pembayaran:{' '}
-        {invoice.statusPembayaran || 'Belum Lunas'}
-      </p>
-
-      <section className="section-block">
-        <h2>Data pembeli</h2>
-        <div className="info-grid compact">
-          <div>
-            <span>Nama</span>
-            <strong>{pembeli.namaPembeli || '—'}</strong>
-          </div>
-          <div>
-            <span>Kontak</span>
-            <strong>{pembeli.kontakPembeli || '—'}</strong>
-          </div>
-          <div>
-            <span>Alamat</span>
-            <strong>{pembeli.alamatPembeli || '—'}</strong>
-          </div>
+    <div className="wrap invoice-page">
+      <div className="invoice-toolbar no-print">
+        <div>
+          <p className="kicker">Invoice booking</p>
+          <h1 className="invoice-page-title">{invoice.idPembelian || idPembelian}</h1>
         </div>
-      </section>
-
-      <section className="section-block">
-        <h2>Data pemesanan</h2>
-        <div className="info-grid compact">
-          <div>
-            <span>Petak</span>
-            <strong>
-              {pesanan.namaPolygon || pesanan.idPolygon || '—'}
-              {pesanan.idPolygon ? ` (${pesanan.idPolygon})` : ''}
-            </strong>
-          </div>
-          <div>
-            <span>Produk</span>
-            <strong>{pesanan.tipeProduk || 'Green Beans'}</strong>
-          </div>
-          <div>
-            <span>Varietas</span>
-            <strong>{pesanan.varietas || '—'}</strong>
-          </div>
-          <div>
-            <span>Proses</span>
-            <strong>{pesanan.prosesPengolahan || '—'}</strong>
-          </div>
-          <div>
-            <span>Jumlah</span>
-            <strong>{formatKg(pesanan.jumlahPesananKg)}</strong>
-          </div>
-          <div>
-            <span>Harga / kg</span>
-            <strong>{formatRp(pesanan.hargaPerKg)}</strong>
-          </div>
-          <div>
-            <span>Total</span>
-            <strong>{formatRp(pesanan.totalHarga)}</strong>
-          </div>
-        </div>
-      </section>
-
-      <section className="section-block">
-        <h2>Pembayaran</h2>
-        <p className="payment-box">{pembayaran}</p>
-      </section>
-
-      <div className="actions">
-        <Link className="btn" to="/peta">
-          Kembali ke peta
-        </Link>
-        {pesanan.idPolygon ? (
-          <Link
-            className="btn btn-ghost"
-            to={`/lahan/${encodeURIComponent(pesanan.idPolygon)}`}
+        <div className="invoice-actions">
+          <button
+            type="button"
+            className="btn btn-invoice"
+            onClick={onDownloadPdf}
+            disabled={pdfBusy}
           >
-            Lihat petak
+            {pdfBusy ? 'Menyiapkan PDF…' : 'Unduh PDF'}
+          </button>
+          <button type="button" className="btn btn-ghost" onClick={onPrintPage}>
+            Cetak halaman
+          </button>
+          <Link className="btn btn-ghost" to="/peta">
+            Kembali ke peta
           </Link>
-        ) : null}
+          {pesanan.idPolygon ? (
+            <Link
+              className="btn btn-ghost"
+              to={`/lahan/${encodeURIComponent(pesanan.idPolygon)}`}
+            >
+              Lihat petak
+            </Link>
+          ) : null}
+        </div>
+        {pdfMsg ? <p className="form-hint">{pdfMsg}</p> : null}
       </div>
+
+      <InvoiceDocument invoice={invoice} />
     </div>
   );
 }

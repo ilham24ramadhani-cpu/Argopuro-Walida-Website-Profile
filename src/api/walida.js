@@ -1,5 +1,8 @@
 const API_BASE = (import.meta.env.VITE_WALIDA_API || '').replace(/\/$/, '');
 
+const MISSING_API_MSG =
+  'VITE_WALIDA_API belum diatur. Set variabel ini ke origin sistem admin Walida (contoh https://admin-anda.up.railway.app), lalu rebuild/redeploy. Di Railway: Variables → VITE_WALIDA_API → Redeploy.';
+
 export function getApiBase() {
   return API_BASE;
 }
@@ -21,7 +24,7 @@ async function parseJson(res) {
  */
 export async function fetchPolygons() {
   if (!API_BASE) {
-    throw new Error('VITE_WALIDA_API belum diatur. Isi di file .env.');
+    throw new Error(MISSING_API_MSG);
   }
   const res = await fetch(`${API_BASE}/api/polygon`);
   const data = await parseJson(res);
@@ -39,7 +42,7 @@ export async function fetchPolygons() {
 
 export async function fetchPolygon(id) {
   if (!API_BASE) {
-    throw new Error('VITE_WALIDA_API belum diatur. Isi di file .env.');
+    throw new Error(MISSING_API_MSG);
   }
   const res = await fetch(`${API_BASE}/api/polygon/${encodeURIComponent(id)}`);
   const data = await parseJson(res);
@@ -58,7 +61,7 @@ export async function fetchPolygon(id) {
  */
 export async function createBooking(body) {
   if (!API_BASE) {
-    throw new Error('VITE_WALIDA_API belum diatur. Isi di file .env.');
+    throw new Error(MISSING_API_MSG);
   }
   const res = await fetch(`${API_BASE}/api/booking`, {
     method: 'POST',
@@ -81,7 +84,7 @@ export async function createBooking(body) {
 /** Lihat ulang invoice (opsional). */
 export async function fetchBookingInvoice(idPembelian) {
   if (!API_BASE) {
-    throw new Error('VITE_WALIDA_API belum diatur. Isi di file .env.');
+    throw new Error(MISSING_API_MSG);
   }
   const res = await fetch(
     `${API_BASE}/api/booking/${encodeURIComponent(idPembelian)}`,
