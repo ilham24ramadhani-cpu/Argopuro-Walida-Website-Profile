@@ -1,36 +1,63 @@
-# Argopuro Walida — Website Profile
+# Argopuro Walida — Website Publik
 
-Situs publik company profile + peta polygon kebun (Flask).
+Company profile + peta polygon kebun + booking e-commerce lahan.
 
-## Struktur
+Proyek **terpisah** dari sistem admin Walida. Website ini hanya:
 
-- `templates/` — HTML (Jinja2)
-- `static/` — CSS, logo, foto carousel
-- `script/` — JavaScript (carousel, nav, peta)
-- `app.py` — server + API GET `/api/polygon`
-- `content.py` — teks profil perusahaan
+- **Membaca** polygon: `GET {VITE_WALIDA_API}/api/polygon`
+- **Menulis** booking: `POST {VITE_WALIDA_API}/api/booking`
+
+Tidak ada URI MongoDB, login admin, atau CRUD polygon di frontend.
+
+## Stack
+
+Vite + React + React Router + Leaflet (OpenStreetMap)
 
 ## Lokal
 
 ```bash
-python -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-cp .env.example .env   # isi MONGODB_URI, DB_NAME, SECRET_KEY
-python app.py
+cp .env.example .env
+# isi VITE_WALIDA_API = origin sistem admin, contoh http://127.0.0.1:8080
+
+npm install
+npm run dev
 ```
 
-Buka http://127.0.0.1:8001
+Buka http://127.0.0.1:5173
 
-## Railway
+Pastikan sistem admin Walida berjalan dan CORS mengizinkan origin website.
 
-Builder: **Nixpacks** (bukan Dockerfile). Di dashboard service → Settings → Build pastikan Builder = Nixpacks.
+## Build & production
 
-Variables yang wajib:
+```bash
+npm run build
+npm start
+```
 
-- `MONGODB_URI`
-- `DB_NAME` (contoh: `DB_Walida`)
-- `SECRET_KEY`
-- `PORT` diisi otomatis oleh Railway
+`npm start` memakai `serve` untuk folder `dist` (port dari `PORT` atau 4173).
 
-Start command: `gunicorn app:app --bind 0.0.0.0:$PORT --workers 2 --timeout 120`
+## Konten
+
+| File | Isi |
+| --- | --- |
+| `src/content/company.js` | Nama, tagline, tentang, proses, kontak |
+| `src/content/payment.js` | Teks Bank Jatim untuk invoice |
+| `public/logo.png` | Logo |
+| `public/carousel/` | Foto beranda |
+
+Field kontak kosong **tidak ditampilkan** dan tidak dikarang.
+
+## Halaman
+
+- `/` Beranda
+- `/tentang` Tentang
+- `/proses` Proses kopi
+- `/peta` Peta kebun + panel petak + tombol Check
+- `/lahan/:idPolygon` Data petak (e-commerce lahan)
+- `/lahan/:idPolygon/booking` Form jumlah GB
+- `/lahan/:idPolygon/checkout` Data pembeli + submit
+- `/invoice/:idPembelian` Invoice
+
+## Catatan booking
+
+Jika `POST /api/booking` belum ada di admin, checkout menampilkan pesan error yang jelas. Website **tidak** menyimpan pesanan palsu ke localStorage sebagai sumber kebenaran.

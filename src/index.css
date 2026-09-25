@@ -7,6 +7,7 @@
   --line: #d9e2e0;
   --paper: #f6f3ee;
   --white: #ffffff;
+  --danger: #c62828;
   --shadow: 0 10px 30px rgba(0, 77, 71, 0.08);
   --radius: 16px;
 }
@@ -18,7 +19,8 @@
 }
 
 html,
-body {
+body,
+#root {
   min-height: 100%;
 }
 
@@ -38,6 +40,13 @@ a {
 img {
   max-width: 100%;
   display: block;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
 }
 
 .site {
@@ -81,18 +90,6 @@ img {
   width: auto;
   max-width: 48px;
   object-fit: contain;
-}
-
-.brand-mark {
-  width: 36px;
-  height: 36px;
-  border-radius: 9px;
-  background: var(--teal);
-  color: white;
-  display: grid;
-  place-items: center;
-  font-size: 11px;
-  font-weight: 800;
 }
 
 .nav-links {
@@ -149,6 +146,10 @@ img {
   width: min(1080px, calc(100% - 40px));
   margin: 0 auto;
   padding: 48px 0 72px;
+}
+
+.booking-wrap {
+  max-width: 720px;
 }
 
 .hero-carousel {
@@ -208,10 +209,6 @@ img {
   padding: 56px 0 96px;
 }
 
-.hero-carousel .kicker {
-  color: #c8ebe6;
-}
-
 .hero-carousel h1 {
   color: #fff;
   text-shadow: 0 2px 18px rgba(0, 0, 0, 0.35);
@@ -245,7 +242,8 @@ img {
 }
 
 h1,
-h2 {
+h2,
+h3 {
   letter-spacing: -0.03em;
   line-height: 1.15;
 }
@@ -257,8 +255,8 @@ h1 {
 }
 
 h2 {
-  font-size: 28px;
-  margin-bottom: 16px;
+  font-size: 22px;
+  margin-bottom: 14px;
 }
 
 .lede {
@@ -270,6 +268,7 @@ h2 {
 .btn {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
   background: var(--teal);
   color: white;
@@ -280,14 +279,23 @@ h2 {
   cursor: pointer;
 }
 
-.btn:hover {
+.btn:hover:not(:disabled) {
   background: var(--teal-dark);
+}
+
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 
 .btn-ghost {
   background: transparent;
   color: var(--teal-dark);
   border: 1px solid var(--line);
+}
+
+.btn-block {
+  width: 100%;
 }
 
 .actions {
@@ -299,9 +307,7 @@ h2 {
 
 .carousel-nav {
   position: absolute;
-  top: auto;
   bottom: 18px;
-  transform: none;
   width: 40px;
   height: 40px;
   border: 0;
@@ -313,10 +319,6 @@ h2 {
   cursor: pointer;
   box-shadow: var(--shadow);
   z-index: 3;
-}
-
-.carousel-nav:hover {
-  background: white;
 }
 
 .carousel-nav.prev {
@@ -341,9 +343,6 @@ h2 {
 
 .carousel-dots button {
   pointer-events: auto;
-}
-
-.carousel-dots button {
   width: 9px;
   height: 9px;
   padding: 0;
@@ -420,6 +419,13 @@ h2 {
   padding: 20px;
 }
 
+.contact-empty code {
+  font-size: 13px;
+  background: var(--teal-soft);
+  padding: 2px 6px;
+  border-radius: 6px;
+}
+
 .contact-list {
   list-style: none;
   display: grid;
@@ -479,8 +485,8 @@ h2 {
   border: 1px solid var(--line);
   border-radius: 10px;
   padding: 10px 12px;
-  font: inherit;
   outline: none;
+  background: var(--white);
 }
 
 .search:focus {
@@ -497,7 +503,6 @@ h2 {
   text-align: left;
   border: 0;
   background: transparent;
-  font: inherit;
   padding: 12px;
   border-radius: 12px;
   cursor: pointer;
@@ -544,8 +549,6 @@ h2 {
 
 .status-box.error {
   color: #8a2a2a;
-  max-width: 36ch;
-  margin: 0 auto;
 }
 
 .detail-panel {
@@ -553,21 +556,24 @@ h2 {
   z-index: 400;
   right: 16px;
   top: 16px;
-  width: min(320px, calc(100% - 32px));
+  width: min(340px, calc(100% - 32px));
+  max-height: calc(100% - 32px);
+  overflow: auto;
   background: var(--white);
   border-radius: 14px;
   box-shadow: var(--shadow);
   border: 1px solid var(--line);
-  overflow: hidden;
 }
 
 .detail-panel header {
   padding: 14px 16px 10px;
   background: var(--teal);
   color: white;
+  position: sticky;
+  top: 0;
 }
 
-.detail-panel header button {
+.detail-close {
   float: right;
   border: 0;
   background: transparent;
@@ -582,11 +588,21 @@ h2 {
   opacity: 0.85;
 }
 
-.detail-panel dl {
-  padding: 8px 16px 16px;
+.badge-habis {
+  display: inline-block;
+  margin-top: 6px;
+  font-size: 11px;
+  font-weight: 800;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 2px 8px;
+  border-radius: 999px;
 }
 
-.detail-panel div {
+.detail-panel dl {
+  padding: 8px 16px 8px;
+}
+
+.detail-panel dl > div {
   display: flex;
   justify-content: space-between;
   gap: 12px;
@@ -602,6 +618,188 @@ h2 {
 .detail-panel dd {
   font-weight: 800;
   text-align: right;
+}
+
+.proses-chip {
+  display: block;
+}
+
+.pembeli-block {
+  padding: 0 16px 12px;
+}
+
+.pembeli-block h4 {
+  font-size: 13px;
+  margin-bottom: 8px;
+  color: var(--teal-dark);
+}
+
+.pembeli-block ul {
+  list-style: none;
+  display: grid;
+  gap: 8px;
+}
+
+.pembeli-block li {
+  display: grid;
+  gap: 2px;
+  font-size: 13px;
+  padding: 8px 10px;
+  background: var(--teal-soft);
+  border-radius: 10px;
+}
+
+.pembeli-block li span {
+  color: var(--muted);
+}
+
+.detail-actions {
+  padding: 8px 16px 16px;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.info-grid.compact {
+  grid-template-columns: 1fr;
+}
+
+.info-grid > div {
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 14px 16px;
+}
+
+.info-grid span {
+  display: block;
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--teal);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 4px;
+}
+
+.text-habis {
+  color: var(--danger);
+}
+
+.text-ok {
+  color: var(--teal);
+}
+
+.section-block {
+  margin-top: 32px;
+}
+
+.table-wrap {
+  overflow: auto;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--white);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+th,
+td {
+  text-align: left;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--line);
+}
+
+th {
+  background: var(--teal-soft);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--teal-dark);
+}
+
+tr:last-child td {
+  border-bottom: 0;
+}
+
+.booking-form {
+  display: grid;
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.booking-form label {
+  display: grid;
+  gap: 6px;
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.booking-form input,
+.booking-form select,
+.booking-form textarea {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 10px 12px;
+  background: var(--white);
+  outline: none;
+}
+
+.booking-form input:focus,
+.booking-form select:focus,
+.booking-form textarea:focus {
+  border-color: var(--teal);
+}
+
+.price-box {
+  background: var(--teal-soft);
+  border-radius: 12px;
+  padding: 14px 16px;
+  display: grid;
+  gap: 4px;
+}
+
+.price-box span {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--teal);
+  text-transform: uppercase;
+}
+
+.price-box strong {
+  font-size: 22px;
+}
+
+.price-box small {
+  color: var(--muted);
+}
+
+.payment-box {
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 16px;
+  color: var(--muted);
+  white-space: pre-wrap;
+}
+
+.form-error {
+  color: #8a2a2a;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.form-hint {
+  margin-top: 12px;
+  color: var(--muted);
+  font-size: 14px;
 }
 
 @media (max-width: 860px) {
@@ -645,25 +843,7 @@ h2 {
   .detail-panel {
     top: auto;
     bottom: 16px;
-  }
-
-  .carousel-nav {
-    width: 36px;
-    height: 36px;
-    font-size: 22px;
-    bottom: 14px;
-  }
-
-  .carousel-dots {
-    bottom: 22px;
-  }
-
-  .carousel-nav.prev {
-    left: 8px;
-  }
-
-  .carousel-nav.next {
-    right: 8px;
+    max-height: 48vh;
   }
 
   .hero-carousel,
