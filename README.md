@@ -45,8 +45,11 @@ Buka http://127.0.0.1:5000
 
 ## Production (Railway)
 
-Set variables: `WALIDA_API`, `SECRET_KEY`, `PORT`.  
+Set variables: `WALIDA_API` (atau `VITE_WALIDA_API`), `SECRET_KEY`, `PORT`.  
 Start: `gunicorn wsgi:app --bind 0.0.0.0:$PORT`
+
+Jika peta kosong dengan pesan “WALIDA_API belum diatur”, isi origin layanan admin
+(contoh `https://argopuro-walida-new-production.up.railway.app`) lalu **Redeploy**.
 
 ## Halaman
 
