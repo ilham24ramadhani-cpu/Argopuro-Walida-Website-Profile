@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+{% block title %}{{ nama if item else 'Data petak' }} — {{ company.nama }}{% endblock %}
+{% block content %}
+<div class="wrap booking-wrap">
+  {% if error or not item %}
+    <h1>Data petak</h1>
+    <p class="status-box error">{{ error or 'Petak tidak ditemukan.' }}</p>
+    <a class="btn" href="{{ url_for('peta') }}">Kembali ke peta</a>
+  {% else %}
+    <p class="kicker">E-commerce lahan</p>
+    <h1>{{ nama }}</h1>
+    <p class="lede">{{ item.idPolygon }}</p>
+
+    <div class="petani-hero">
+      <div class="petani-avatar petani-avatar--lg" aria-hidden="{{ 'true' if not foto_url else 'false' }}">
+        {% if foto_url %}
+          <img src="{{ foto_url }}" alt="{{ petani }}" onerror="this.remove(); this.parentElement.querySelector('.petani-avatar-fallback').hidden=false;" />
+          <span class="petani-avatar-fallback" hidden>{{ inisial }}</span>
+        {% else %}
+          <span class="petani-avatar-fallback">{{ inisial }}</span>
+        {% endif %}
+      </div>
+      <div class="petani-block-text">
+        <span class="petani-label">Petani</span>
+        <strong>{{ petani }}</strong>
+        {% if item.idPetani %}<span class="petani-id">{{ item.idPetani }}</span>{% endif %}
+      </div>
+    </div>
+
+    <div class="info-grid">
+      <div>
+        <span>Jumlah cherry</span>
+        <strong>{{ format_kg(item.jumlahCherry) }}</strong>
+      </div>
+      <div>
+        <span>Potential GB (kapasitas)</span>
+        <strong>{{ format_kg(item.potentialGb) }}</strong>
+      </div>
+      <div>
+        <span>Potential GB tersedia</span>
+        <strong>{{ '—' if stock is none else format_kg(stock) }}</strong>
+      </div>
+      <div>
+        <span>Varietas</span>
+        <strong>{{ item.varietas or '—' }}</strong>
+      </div>
+      <div>
+        <span>Proses pengolahan</span>
+        <strong>{{ proses_list|join(', ') if proses_list else '—' }}</strong>
+      </div>
+      <div>
+        <span>MDPL</span>
+        <strong>{{ format_meter(item.mdpl) }}</strong>
+      </div>
+      <div>
+        <span>Luas lahan</span>
+        <strong>{{ format_ha(luas) }}</strong>
+      </div>
+      <div>
+        <span>Status booking</span>
+        <strong class="{{ 'text-habis' if sold_out else 'text-ok' }}">
+          {{ 'Habis' if sold_out else (item.statusBooking or 'Tersedia') }}
+        </strong>
+      </div>
+    </div>
+
+    {% if pembeli %}
+      <section class="section-block">
+        <h2>Pembeli booking</h2>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Nama pembeli</th>
+                <th>Proses pengolahan</th>
+                <th>Jumlah (kg)</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for p in pembeli %}
+                <tr>
+                  <td>{{ p.namaPembeli or '—' }}</td>
+                  <td>{{ p.prosesPengolahan or '—' }}</td>
+                  <td>{{ format_kg(p.jumlahPesananKg) }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </section>
+    {% endif %}
+
+    <div class="actions">
+      {% if can_book %}
+        <a class="btn" href="{{ url_for('booking', id_polygon=item.idPolygon) }}">Book</a>
+      {% else %}
+        <button type="button" class="btn" disabled>Book</button>
+      {% endif %}
+      <a class="btn btn-ghost" href="{{ url_for('peta') }}">Kembali ke peta</a>
+    </div>
+    {% if not can_book %}
+      <p class="form-hint">
+        {% if sold_out or (stock is not none and stock <= 0) %}
+          Stok Potential GB tersedia sudah habis.
+        {% else %}
+          Booking belum tersedia untuk petak ini (cek stok / harga di sistem admin).
+        {% endif %}
+      </p>
+    {% endif %}
+  {% endif %}
+</div>
+{% endblock %}

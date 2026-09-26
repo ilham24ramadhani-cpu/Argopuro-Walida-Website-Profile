@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+{% block title %}Checkout — {{ company.nama }}{% endblock %}
+{% block content %}
+<div class="wrap booking-wrap">
+  <p class="kicker">Checkout</p>
+  <h1>Pembelian</h1>
+
+  <section class="section-block">
+    <h2>Ringkasan pesanan</h2>
+    <div class="info-grid compact">
+      <div>
+        <span>Petak</span>
+        <strong>{{ draft.namaPolygon or draft.idPolygon }}</strong>
+      </div>
+      {% if petani %}
+        <div>
+          <span>Petani</span>
+          <strong>{{ petani }}</strong>
+        </div>
+      {% endif %}
+      <div>
+        <span>Proses</span>
+        <strong>{{ draft.prosesPengolahan }}</strong>
+      </div>
+      <div>
+        <span>Jumlah</span>
+        <strong>{{ format_kg(draft.jumlahPesananKg) }}</strong>
+      </div>
+    </div>
+  </section>
+
+  <section class="section-block">
+    <h2>Mekanisme pembayaran</h2>
+    <p class="payment-box">{{ pembayaran }}</p>
+  </section>
+
+  <form class="booking-form" method="post" action="{{ url_for('checkout', id_polygon=draft.idPolygon) }}">
+    <h2>Data pembeli</h2>
+    <label>
+      Nama pembeli
+      <input type="text" name="namaPembeli" value="{{ nama_pembeli }}" required />
+    </label>
+    <label>
+      Kontak (telepon / WA / email)
+      <input type="text" name="kontakPembeli" value="{{ kontak_pembeli }}" required />
+    </label>
+    <label>
+      Alamat
+      <textarea name="alamatPembeli" rows="3" required>{{ alamat_pembeli }}</textarea>
+    </label>
+    <label>
+      Catatan (opsional)
+      <textarea name="catatanPemesanan" rows="2">{{ catatan }}</textarea>
+    </label>
+    {% if form_error %}
+      <p class="form-error">{{ form_error }}</p>
+    {% endif %}
+    <div class="actions">
+      <button type="submit" class="btn">Submit pesanan</button>
+      <a class="btn btn-ghost" href="{{ url_for('booking', id_polygon=draft.idPolygon) }}">Kembali</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

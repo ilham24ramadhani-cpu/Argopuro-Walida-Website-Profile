@@ -1,0 +1,130 @@
+{% extends 'base.html' %}
+{% block title %}Invoice {{ id_pembelian }} — {{ company.nama }}{% endblock %}
+{% block content %}
+<div class="wrap invoice-page">
+  {% if error and not inv %}
+    <h1>Invoice</h1>
+    <p class="status-box error">{{ error }}</p>
+    <a class="btn" href="{{ url_for('peta') }}">Kembali ke peta</a>
+  {% elif not inv %}
+    <p class="lede">Memuat invoice…</p>
+  {% else %}
+    {% set p = inv.pesanan %}
+    {% set pay_style = payment_badge_style(inv.statusPembayaran) %}
+    {% set order_style = order_badge_style(inv.statusPemesanan) %}
+    {% set pembayaran = inv.keteranganPembayaran.strip() if inv.keteranganPembayaran else pembayaran_default %}
+
+    <div class="invoice-toolbar no-print">
+      <div>
+        <p class="kicker">Invoice booking</p>
+        <h1 class="invoice-page-title">{{ inv.idPembelian or id_pembelian }}</h1>
+      </div>
+      <div class="invoice-actions">
+        <button type="button" class="btn btn-invoice" id="btn-print">Cetak / PDF</button>
+        <a class="btn btn-ghost" href="{{ url_for('peta') }}">Kembali ke peta</a>
+        {% if p.idPolygon %}
+          <a class="btn btn-ghost" href="{{ url_for('lahan', id_polygon=p.idPolygon) }}">Lihat petak</a>
+        {% endif %}
+      </div>
+    </div>
+
+    <article class="inv-doc" id="invoice-print-area">
+      <header class="inv-kop">
+        <img class="inv-logo" src="{{ url_for('static', filename='logo.png') }}" alt="" />
+        <div class="inv-kop-right">
+          <strong class="inv-brand">{{ letterhead.nama }}</strong>
+          <p>Kontak: {{ letterhead.kontak }}</p>
+          <p>{{ letterhead.alamat }}</p>
+        </div>
+      </header>
+      <hr class="inv-rule" />
+      <h1 class="inv-title">{{ letterhead.judul }}</h1>
+      <p class="inv-subtitle">{{ letterhead.subjudul }}</p>
+
+      <section class="inv-ringkas">
+        <h2>Ringkasan dokumen</h2>
+        <div class="inv-ringkas-grid">
+          <div>
+            <span>ID Pembelian</span>
+            <strong>{{ inv.idPembelian }}</strong>
+          </div>
+          <div>
+            <span>Status pesanan</span>
+            <span class="inv-badge" style="background:{{ order_style.bg }};color:{{ order_style.color }}">{{ inv.statusPemesanan }}</span>
+          </div>
+          <div>
+            <span>Tanggal pemesanan</span>
+            <strong>{{ format_invoice_date(inv.tanggalPemesanan) }}</strong>
+          </div>
+          <div>
+            <span>Status pembayaran</span>
+            <span class="inv-badge" style="background:{{ pay_style.bg }};color:{{ pay_style.color }}">{{ inv.statusPembayaran }}</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="inv-section">
+        <h2>Data pembeli</h2>
+        <dl class="inv-dl">
+          <div><dt>Nama</dt><dd>{{ inv.pembeli.namaPembeli }}</dd></div>
+          <div><dt>Kontak</dt><dd>{{ inv.pembeli.kontakPembeli }}</dd></div>
+          <div><dt>Alamat</dt><dd>{{ inv.pembeli.alamatPembeli }}</dd></div>
+        </dl>
+      </section>
+
+      <section class="inv-section">
+        <h2>Data pesanan</h2>
+        <div class="inv-table-wrap">
+          <table class="inv-table">
+            <thead>
+              <tr>
+                <th>Produk</th>
+                <th>Varietas</th>
+                <th>Proses pengolahan</th>
+                <th>Petak</th>
+                <th>Berat (kg)</th>
+                <th>Harga / kg</th>
+                <th>Subtotal</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>{{ p.tipeProduk }}</td>
+                <td>{{ p.varietas }}</td>
+                <td>{{ p.prosesPengolahan }}</td>
+                <td>{{ p.petakLabel }}</td>
+                <td class="num">{{ format_number(p.jumlahPesananKg, 2) }}</td>
+                <td class="num">{{ format_number(p.hargaPerKg, 0) }}</td>
+                <td class="num">{{ format_number(p.subtotal, 0) }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="inv-summary">
+          {% if p.biayaPajak > 0 or p.biayaPengiriman > 0 %}
+            <div><span>PPh 22</span><strong>{{ format_number(p.biayaPajak, 0) }}</strong></div>
+            <div><span>Pengiriman (Rp)</span><strong>{{ format_number(p.biayaPengiriman, 0) }}</strong></div>
+          {% endif %}
+          <div class="inv-total-band">
+            <span>TOTAL TAGIHAN</span>
+            <strong>{{ format_number(p.totalHarga, 0) }}</strong>
+          </div>
+        </div>
+      </section>
+
+      <section class="inv-pay">
+        <h2>Keterangan pembayaran</h2>
+        <p>{{ pembayaran }}</p>
+      </section>
+
+      <footer class="inv-foot">
+        <p>{{ letterhead.footer }}</p>
+        <p class="inv-print-date">Dicetak: {{ format_invoice_date(now_iso) }}</p>
+      </footer>
+    </article>
+  {% endif %}
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('script_files', filename='invoice.js') }}"></script>
+{% endblock %}

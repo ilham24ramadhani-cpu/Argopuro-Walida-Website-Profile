@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% block title %}Peta kebun — {{ company.nama }}{% endblock %}
+{% block head_extra %}
+<link
+  rel="stylesheet"
+  href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+  integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+  crossorigin=""
+/>
+{% endblock %}
+{% block content %}
+<div class="peta-layout">
+  <aside class="peta-side">
+    <div class="peta-side-head">
+      <h2>Kebun</h2>
+      <p>Peta kebun mitra Argopuro Walida. Klik petak untuk detail &amp; booking.</p>
+      <div class="peta-filters">
+        <label>
+          MDPL
+          <select id="filter-mdpl">
+            <option value="">Semua</option>
+            <option value="1200">1200 m</option>
+            <option value="1600">1600 m</option>
+            <option value="1800">1800 m</option>
+          </select>
+        </label>
+        <label>
+          Proses pengolahan
+          <select id="filter-proses">
+            <option value="">Semua</option>
+          </select>
+        </label>
+      </div>
+    </div>
+    <div id="peta-status" class="status-box">Memuat polygon…</div>
+    <div class="farm-list" id="farm-list" hidden></div>
+  </aside>
+  <div class="map-pane">
+    <div id="map" class="map-root"></div>
+    <aside class="detail-panel" id="detail-panel" hidden></aside>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+  window.APP = {
+    walidaApi: {{ walida_api|tojson }},
+    lahanUrl: {{ url_for('lahan', id_polygon='__ID__')|tojson }},
+    polygonsUrl: {{ url_for('api_polygons')|tojson }},
+    polygonUrl: {{ url_for('api_polygon', id_polygon='__ID__')|tojson }},
+  };
+</script>
+<script
+  src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+  integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+  crossorigin=""
+></script>
+<script src="{{ url_for('script_files', filename='utils.js') }}"></script>
+<script src="{{ url_for('script_files', filename='peta.js') }}"></script>
+{% endblock %}

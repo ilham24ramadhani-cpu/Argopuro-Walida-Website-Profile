@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block title %}Kontak — {{ company.nama }}{% endblock %}
+{% block content %}
+<div class="wrap">
+  <p class="kicker">Kontak</p>
+  <h1>{{ company.kontak.nama or company.nama }}</h1>
+  {% if contact_fields %}
+    <ul class="contact-list">
+      {% for label, value, href in contact_fields %}
+        <li>
+          <span>{{ label }}</span>
+          {% if href %}
+            <a href="{{ href }}">{{ value }}</a>
+          {% else %}
+            <strong>{{ value }}</strong>
+          {% endif %}
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="contact-empty">
+      Data kontak belum diisi. Edit file <code>content/__init__.py</code> (field
+      <code>kontak</code>) bila sudah siap ditampilkan.
+    </p>
+  {% endif %}
+</div>
+{% endblock %}

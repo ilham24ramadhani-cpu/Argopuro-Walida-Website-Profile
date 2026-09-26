@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{% block title %}{{ company.nama }}{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='bootstrap/css/bootstrap.min.css') }}"
+    />
+    {% block head_extra %}{% endblock %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/site.css') }}" />
+  </head>
+  <body>
+    <div class="site{% if map_mode %} map-mode{% endif %}">
+      <header class="site-header">
+        <a href="{{ url_for('home') }}" class="brand">
+          <img src="{{ url_for('static', filename='logo.png') }}" alt="" />
+          <span class="brand-name">{{ company.nama }}</span>
+        </a>
+        <button
+          class="nav-toggle"
+          type="button"
+          aria-label="Menu"
+          aria-expanded="false"
+          id="nav-toggle"
+        >
+          ☰
+        </button>
+        <nav class="nav-links" id="nav-links">
+          <a href="{{ url_for('home') }}" class="{% if request.endpoint == 'home' %}active{% endif %}">Beranda</a>
+          <a href="{{ url_for('tentang') }}" class="{% if request.endpoint == 'tentang' %}active{% endif %}">Tentang</a>
+          <a href="{{ url_for('proses') }}" class="{% if request.endpoint == 'proses' %}active{% endif %}">Proses</a>
+          <a href="{{ url_for('peta') }}" class="{% if request.endpoint == 'peta' %}active{% endif %}">Peta kebun</a>
+          <a href="{{ url_for('kontak') }}" class="{% if request.endpoint == 'kontak' %}active{% endif %}">Kontak</a>
+        </nav>
+      </header>
+
+      <main class="{% if map_mode %}main-map{% else %}main{% endif %}">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            <div class="wrap" style="padding-bottom: 0">
+              {% for category, message in messages %}
+                <p class="status-box {% if category == 'error' %}error{% endif %}">{{ message }}</p>
+              {% endfor %}
+            </div>
+          {% endif %}
+        {% endwith %}
+        {% block content %}{% endblock %}
+      </main>
+
+      {% if not map_mode %}
+        <footer class="footer">
+          © {{ year }} {{ company.nama }}
+          {% if company.bidang %} · {{ company.bidang }}{% endif %}
+        </footer>
+      {% endif %}
+    </div>
+
+    <script src="{{ url_for('static', filename='bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+    <script src="{{ url_for('script_files', filename='nav.js') }}"></script>
+    {% block scripts %}{% endblock %}
+  </body>
+</html>

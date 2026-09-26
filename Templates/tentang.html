@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% block title %}Tentang — {{ company.nama }}{% endblock %}
+{% block content %}
+<div class="wrap">
+  <p class="kicker">Tentang</p>
+  <h1>{{ company.nama }}</h1>
+  <div class="prose">
+    {% for p in company.tentang %}
+      <p>{{ p }}</p>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

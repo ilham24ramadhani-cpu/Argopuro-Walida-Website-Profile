@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% block title %}Booking — {{ company.nama }}{% endblock %}
+{% block content %}
+<div class="wrap booking-wrap">
+  {% if error or not item %}
+    <h1>Booking</h1>
+    <p class="status-box error">{{ error or 'Petak tidak ditemukan.' }}</p>
+    <a class="btn" href="{{ url_for('peta') }}">Kembali ke peta</a>
+  {% else %}
+    <p class="kicker">Booking</p>
+    <h1>{{ nama }}</h1>
+    <p class="lede">
+      {% if petani %}{{ petani }} · {% endif %}
+      Stok tersedia: {{ '—' if stock is none else format_kg(stock) }}
+    </p>
+
+    <form class="booking-form" method="post" action="{{ url_for('booking', id_polygon=item.idPolygon) }}">
+      <label>
+        Proses pengolahan
+        <select name="prosesPengolahan" required>
+          <option value="">Pilih proses</option>
+          {% for p in proses_list %}
+            <option value="{{ p }}" {% if proses_val == p %}selected{% endif %}>{{ p }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label>
+        Jumlah GB (kg)
+        <input
+          type="number"
+          name="jumlahPesananKg"
+          min="0.01"
+          step="0.01"
+          {% if stock is not none %}max="{{ stock }}"{% endif %}
+          value="{{ qty }}"
+          placeholder="Contoh: 10"
+          required
+        />
+      </label>
+      {% if form_error %}
+        <p class="form-error">{{ form_error }}</p>
+      {% endif %}
+      <div class="actions">
+        <button type="submit" class="btn">Check Out</button>
+        <a class="btn btn-ghost" href="{{ url_for('lahan', id_polygon=item.idPolygon) }}">Batal</a>
+      </div>
+    </form>
+  {% endif %}
+</div>
+{% endblock %}
