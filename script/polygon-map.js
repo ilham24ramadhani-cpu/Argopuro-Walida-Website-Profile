@@ -4,6 +4,8 @@
   const BASE_KEY = 'polygonMapBase';
   const DEFAULT_COLOR = '#00665D';
   const DEFAULT_CENTER = [113.46, -7.85];
+  const HILLSHADE_3D = 0.35;
+  const EASE_MS = 500;
   const CAMERA = {
     '3d': { pitch: 60, bearing: -20 },
     '2d': { pitch: 0, bearing: 0 },
@@ -66,22 +68,37 @@
         },
       },
       layers: [
-        { id: 'base-osm', type: 'raster', source: 'osm', layout: { visibility: vis(base === 'osm') } },
+        {
+          id: 'base-osm',
+          type: 'raster',
+          source: 'osm',
+          layout: { visibility: vis(base === 'osm') },
+          paint: { 'raster-fade-duration': 100, 'raster-opacity-transition': { duration: 0 } },
+        },
         {
           id: 'base-satellite',
           type: 'raster',
           source: 'satellite',
           layout: { visibility: vis(base === 'satellite') },
+          paint: { 'raster-fade-duration': 100, 'raster-opacity-transition': { duration: 0 } },
         },
         {
           id: 'hillshade',
           type: 'hillshade',
           source: 'hillshade-dem',
           layout: { visibility: vis(mode === '3d') },
-          paint: { 'hillshade-exaggeration': 0.35 },
+          paint: {
+            'hillshade-exaggeration': mode === '3d' ? HILLSHADE_3D : 0,
+            'hillshade-exaggeration-transition': { duration: 0 },
+          },
         },
       ],
     };
+  }
+
+  function lowDataMode() {
+    const c = global.navigator && global.navigator.connection;
+    return !!(c && (c.saveData || /(^|-)2g$/.test(c.effectiveType || '')));
   }
 
   function outerRing(coordinates) {
@@ -202,15 +219,20 @@
       return ['==', ['get', 'idPolygon'], selectedId || ''];
     }
 
+    // Setelah peta pertama kali siap, peta dasar lain dan data relief ikut diunduh
+    // (tak terlihat) agar ganti Peta/Satelit dan 2D/3D tidak menunggu unduhan.
+    let preloaded = false;
+
     function applyMode(animate) {
       if (!map || !map.getLayer('polygon-fill')) return;
       const is3d = mode === '3d';
       map.setTerrain(is3d ? { source: 'terrain-dem', exaggeration: 1.5 } : null);
-      map.setLayoutProperty('hillshade', 'visibility', is3d ? 'visible' : 'none');
+      map.setLayoutProperty('hillshade', 'visibility', is3d || preloaded ? 'visible' : 'none');
+      map.setPaintProperty('hillshade', 'hillshade-exaggeration', is3d ? HILLSHADE_3D : 0);
       map.setPaintProperty('polygon-fill', 'fill-opacity', is3d ? 0.5 : 0.4);
       map.setPaintProperty('polygon-line', 'line-width', is3d ? 3 : 2);
       const camera = CAMERA[mode];
-      if (animate) map.easeTo({ ...camera, duration: 800 });
+      if (animate) map.easeTo({ ...camera, duration: EASE_MS });
       else map.jumpTo(camera);
     }
 
@@ -220,8 +242,15 @@
         padding: 48,
         maxZoom: fitMaxZoom,
         ...CAMERA[mode],
-        duration: animate === false ? 0 : 800,
+        duration: animate === false ? 0 : EASE_MS,
       });
+    }
+
+    function preload() {
+      if (!map || preloaded || lowDataMode()) return;
+      preloaded = true;
+      applyBase();
+      if (mode === '2d') map.setLayoutProperty('hillshade', 'visibility', 'visible');
     }
 
     function featureBounds(id) {
@@ -272,23 +301,29 @@
       applyMode(false);
       const initial = (selectedId && featureBounds(selectedId)) || (mode === '3d' && geo.bounds);
       if (initial) fitTo(initial, false);
+      map.once('idle', preload);
     });
 
+    // Layer tak aktif tetap "visible" dengan opacity 0 supaya tile-nya terus dimuat
+    // tetapi tidak tergambar; tanpa transisi agar cache render terrain tidak tercampur.
     function applyBase() {
       if (!map || !map.getLayer('base-osm')) return;
-      map.setLayoutProperty('base-osm', 'visibility', base === 'osm' ? 'visible' : 'none');
-      map.setLayoutProperty('base-satellite', 'visibility', base === 'satellite' ? 'visible' : 'none');
+      const sat = base === 'satellite';
+      map.setLayoutProperty('base-osm', 'visibility', !sat || preloaded ? 'visible' : 'none');
+      map.setLayoutProperty('base-satellite', 'visibility', sat || preloaded ? 'visible' : 'none');
+      map.setPaintProperty('base-osm', 'raster-opacity', sat ? 0 : 1);
+      map.setPaintProperty('base-satellite', 'raster-opacity', sat ? 1 : 0);
     }
 
     function setMode(next) {
-      if (next !== '2d' && next !== '3d') return;
+      if ((next !== '2d' && next !== '3d') || next === mode) return;
       mode = next;
       savePref(MODE_KEY, mode);
       applyMode(true);
     }
 
     function setBase(next) {
-      if (next !== 'osm' && next !== 'satellite') return;
+      if ((next !== 'osm' && next !== 'satellite') || next === base) return;
       base = next;
       savePref(BASE_KEY, base);
       applyBase();
