@@ -634,11 +634,119 @@ h2 {
   width: 100%;
 }
 
-.leaflet-container {
-  height: 100%;
-  width: 100%;
+.map-root.maplibregl-map {
   background: #d7e4e2;
   font-family: inherit;
+}
+
+.map-fallback {
+  display: grid;
+  place-items: center;
+  height: 100%;
+  padding: 24px;
+  text-align: center;
+  color: var(--muted);
+  background: #d7e4e2;
+}
+
+.map-toolbar {
+  position: absolute;
+  z-index: 300;
+  top: 10px;
+  left: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-width: calc(100% - 70px);
+  pointer-events: none;
+}
+
+.map-toolbar-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.map-toolbar .map-toggle-group,
+.map-toolbar .map-hint {
+  pointer-events: auto;
+}
+
+.map-toggle-group {
+  display: inline-flex;
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.map-toggle-btn {
+  border: 0;
+  background: transparent;
+  color: var(--teal-dark);
+  font-weight: 800;
+  font-size: 13px;
+  padding: 6px 14px;
+  cursor: pointer;
+}
+
+.map-toggle-btn + .map-toggle-btn {
+  border-left: 1px solid var(--line);
+}
+
+.map-toggle-btn:hover {
+  background: var(--teal-soft);
+}
+
+.map-toggle-btn.active {
+  background: var(--teal);
+  color: var(--white);
+}
+
+.map-toggle-btn:focus-visible {
+  outline: 2px solid var(--teal-dark);
+  outline-offset: -2px;
+}
+
+.map-hint {
+  align-self: flex-start;
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--muted);
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 8px;
+}
+
+.map-legend {
+  position: absolute;
+  z-index: 300;
+  left: 10px;
+  bottom: 40px;
+  margin: 0;
+  padding: 8px 10px;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  font-size: 12px;
+  color: var(--ink);
+}
+
+.map-legend li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.map-legend-swatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  flex: none;
 }
 
 .status-box {
@@ -654,9 +762,9 @@ h2 {
 .detail-panel {
   position: absolute;
   z-index: 400;
-  right: 16px;
+  right: 56px;
   top: 16px;
-  width: min(340px, calc(100% - 32px));
+  width: min(340px, calc(100% - 72px));
   max-height: calc(100% - 32px);
   overflow: auto;
   background: var(--white);
@@ -943,7 +1051,18 @@ tr:last-child td {
   .detail-panel {
     top: auto;
     bottom: 16px;
+    right: 16px;
+    width: calc(100% - 32px);
     max-height: 48vh;
+  }
+
+  .map-legend {
+    flex-direction: row;
+    flex-wrap: wrap;
+    column-gap: 10px;
+    right: 10px;
+    bottom: 36px;
+    font-size: 11px;
   }
 
   .hero-carousel,

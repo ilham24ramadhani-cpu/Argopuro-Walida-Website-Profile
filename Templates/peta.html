@@ -1,12 +1,8 @@
 {% extends 'base.html' %}
 {% block title %}Peta kebun — {{ company.nama }}{% endblock %}
 {% block head_extra %}
-<link
-  rel="stylesheet"
-  href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-  integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
-  crossorigin=""
-/>
+<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" />
+<script defer src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
 {% endblock %}
 {% block content %}
 <div class="peta-layout">
@@ -37,6 +33,25 @@
   </aside>
   <div class="map-pane">
     <div id="map" class="map-root"></div>
+    <div class="map-toolbar" id="map-toolbar">
+      <div class="map-toolbar-row">
+        <div class="btn-group btn-group-sm map-toggle-group" role="group" aria-label="Mode peta">
+          <button type="button" class="map-toggle-btn" data-map-mode="2d" aria-pressed="false">2D</button>
+          <button type="button" class="map-toggle-btn" data-map-mode="3d" aria-pressed="false">3D</button>
+        </div>
+        <div class="btn-group btn-group-sm map-toggle-group" role="group" aria-label="Peta dasar">
+          <button type="button" class="map-toggle-btn" data-map-base="osm" aria-pressed="false">Peta</button>
+          <button type="button" class="map-toggle-btn" data-map-base="satellite" aria-pressed="false">Satelit</button>
+        </div>
+      </div>
+      <small class="map-hint" hidden>Klik kanan + geser (atau dua jari) untuk memutar dan memiringkan peta.</small>
+    </div>
+    <ul class="map-legend" aria-label="Legenda warna petak">
+      <li><span class="map-legend-swatch" style="background:#8B4513"></span>MDPL 1200</li>
+      <li><span class="map-legend-swatch" style="background:#00665D"></span>MDPL 1600</li>
+      <li><span class="map-legend-swatch" style="background:#C9A227"></span>MDPL 1800</li>
+      <li><span class="map-legend-swatch" style="background:#C62828"></span>Stok booking habis</li>
+    </ul>
     <aside class="detail-panel" id="detail-panel" hidden></aside>
   </div>
 </div>
@@ -50,11 +65,7 @@
     polygonUrl: {{ url_for('api_polygon', id_polygon='__ID__')|tojson }},
   };
 </script>
-<script
-  src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-  integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
-  crossorigin=""
-></script>
 <script src="{{ url_for('script_files', filename='utils.js') }}"></script>
+<script src="{{ url_for('script_files', filename='polygon-map.js') }}"></script>
 <script src="{{ url_for('script_files', filename='peta.js') }}"></script>
 {% endblock %}

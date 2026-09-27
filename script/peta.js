@@ -1,4 +1,4 @@
-/* Peta kebun: filter MDPL/proses, Leaflet, panel Petani + Book */
+/* Peta kebun: filter MDPL/proses, PolygonMap (MapLibre 2D/3D), panel Petani + Book */
 document.addEventListener('DOMContentLoaded', () => {
   const U = window.WalidaUtils;
   const APP = window.APP || {};
@@ -12,7 +12,6 @@ document.addEventListener('DOMContentLoaded', () => {
   let selectedId = null;
   let selected = null;
   let map = null;
-  let layers = [];
 
   function setStatus(text, isError) {
     if (!text) {
@@ -65,7 +64,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if ([...set].includes(current)) prosesEl.value = current;
   }
 
-  function renderList() {
+  function renderList(fit) {
     const filtered = filteredItems();
     listEl.innerHTML = '';
     if (!filtered.length) {
@@ -73,7 +72,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!statusEl.textContent || statusEl.hidden) {
         setStatus('Tidak ada petak yang cocok dengan filter.', false);
       }
-      renderMap(filtered);
+      renderMap(filtered, fit);
       return;
     }
     if (!statusEl.classList.contains('error')) setStatus('', false);
@@ -89,7 +88,7 @@ document.addEventListener('DOMContentLoaded', () => {
       btn.addEventListener('click', () => onSelect(id));
       listEl.appendChild(btn);
     });
-    renderMap(filtered);
+    renderMap(filtered, fit);
   }
 
   function avatarHtml(item, size) {
@@ -170,50 +169,21 @@ document.addEventListener('DOMContentLoaded', () => {
       selected = null;
       renderPanel(null);
       renderList();
+      if (map) map.focus(null);
     });
   }
 
-  function ensureMap() {
-    if (map) return map;
-    map = L.map('map').setView([-7.85, 113.46], 9);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution:
-        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-    }).addTo(map);
-    return map;
-  }
-
-  function renderMap(filtered) {
-    const m = ensureMap();
-    layers.forEach((layer) => m.removeLayer(layer));
-    layers = [];
-    const allPts = [];
-    const selectedPts = [];
-
-    filtered.forEach((item) => {
-      const id = U.farmId(item);
-      const active = selectedId === id;
-      const color = U.polygonColor(item, active);
-      const soldOut = U.isSoldOut(item);
-      U.farmPolygons(item).forEach((poly) => {
-        const layer = L.polygon(poly.latlngs, {
-          color: active ? '#004d47' : color,
-          weight: active ? 3.5 : 2,
-          fillColor: color,
-          fillOpacity: active ? 0.55 : soldOut ? 0.4 : 0.28,
-        }).addTo(m);
-        layer.on('click', () => onSelect(id));
-        layers.push(layer);
-        poly.latlngs.forEach((ll) => {
-          allPts.push(ll);
-          if (active) selectedPts.push(ll);
-        });
+  function renderMap(filtered, fit) {
+    if (!map) {
+      map = window.PolygonMap.create('map', filtered, {
+        selectedId,
+        colorFor: (item) => U.polygonColor(item, false),
+        onSelect: (item) => onSelect(U.farmId(item)),
       });
-    });
-
-    const pts = selectedPts.length ? selectedPts : allPts;
-    if (pts.length) m.fitBounds(pts, { padding: [36, 36], maxZoom: 16 });
-    setTimeout(() => m.invalidateSize(), 80);
+      window.PolygonMap.bindControls(map, document.getElementById('map-toolbar'));
+      return;
+    }
+    map.setItems(filtered, { fit });
   }
 
   async function onSelect(id) {
@@ -221,6 +191,7 @@ document.addEventListener('DOMContentLoaded', () => {
     selected = items.find((i) => U.farmId(i) === id) || null;
     renderPanel(selected);
     renderList();
+    if (map) map.focus(id);
     if (!id) return;
     try {
       const res = await fetch(polygonHref(id));
@@ -236,8 +207,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  mdplEl.addEventListener('change', renderList);
-  prosesEl.addEventListener('change', renderList);
+  mdplEl.addEventListener('change', () => renderList(true));
+  prosesEl.addEventListener('change', () => renderList(true));
 
   (async function load() {
     try {
@@ -255,6 +226,7 @@ document.addEventListener('DOMContentLoaded', () => {
       renderList();
     } catch (err) {
       setStatus(err.message || 'Tidak bisa memuat data polygon. Periksa WALIDA_API.', true);
+      renderMap([]);
     }
   })();
 });

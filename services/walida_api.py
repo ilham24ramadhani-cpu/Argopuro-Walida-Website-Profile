@@ -23,6 +23,18 @@ def _base() -> str:
     return base
 
 
+def _request(method: str, path: str, **kwargs) -> requests.Response:
+    base = _base()
+    try:
+        return requests.request(method, f'{base}{path}', **kwargs)
+    except requests.RequestException as exc:
+        raise WalidaApiError(
+            f'Sistem admin Walida tidak bisa dihubungi di {base}. '
+            'Pastikan server admin berjalan atau periksa WALIDA_API.',
+            status=503,
+        ) from exc
+
+
 def _parse(res: requests.Response):
     try:
         return res.json() if res.content else None
@@ -32,7 +44,7 @@ def _parse(res: requests.Response):
 
 
 def fetch_polygons():
-    res = requests.get(f'{_base()}/api/polygon', timeout=30)
+    res = _request('GET', '/api/polygon', timeout=30)
     data = _parse(res)
     if not res.ok:
         raise WalidaApiError(
@@ -48,8 +60,9 @@ def fetch_polygons():
 
 
 def fetch_polygon(id_polygon: str):
-    res = requests.get(
-        f'{_base()}/api/polygon/{requests.utils.quote(str(id_polygon), safe="")}',
+    res = _request(
+        'GET',
+        f'/api/polygon/{requests.utils.quote(str(id_polygon), safe="")}',
         timeout=30,
     )
     data = _parse(res)
@@ -65,8 +78,9 @@ def fetch_polygon(id_polygon: str):
 
 
 def create_booking(body: dict):
-    res = requests.post(
-        f'{_base()}/api/booking',
+    res = _request(
+        'POST',
+        '/api/booking',
         json=body,
         headers={'Content-Type': 'application/json'},
         timeout=45,
@@ -83,8 +97,9 @@ def create_booking(body: dict):
 
 
 def fetch_booking_invoice(id_pembelian: str):
-    res = requests.get(
-        f'{_base()}/api/booking/{requests.utils.quote(str(id_pembelian), safe="")}',
+    res = _request(
+        'GET',
+        f'/api/booking/{requests.utils.quote(str(id_pembelian), safe="")}',
         timeout=30,
     )
     data = _parse(res)

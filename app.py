@@ -288,13 +288,23 @@ def create_app(config_class=Config):
             now_iso=datetime.now().isoformat(),
         )
 
+    def _rewrite_petani_foto(item: dict) -> dict:
+        """Pastikan URL foto petani siap dipakai di HTTPS."""
+        if not isinstance(item, dict):
+            return item
+        out = dict(item)
+        url = H.petani_foto_url(out, app.config.get('WALIDA_API') or '')
+        if url:
+            out['fotoPetaniFullUrl'] = url
+        return out
+
     # ——— Proxy API untuk JS (peta) ———
 
     @app.get('/api/polygons')
     def api_polygons():
         try:
             data = walida_api.fetch_polygons()
-            return jsonify(data)
+            return jsonify([_rewrite_petani_foto(x) for x in data])
         except walida_api.WalidaApiError as exc:
             return jsonify({'error': str(exc)}), exc.status or 502
 
@@ -302,7 +312,7 @@ def create_app(config_class=Config):
     def api_polygon(id_polygon):
         try:
             data = walida_api.fetch_polygon(id_polygon)
-            return jsonify(data)
+            return jsonify(_rewrite_petani_foto(data))
         except walida_api.WalidaApiError as exc:
             return jsonify({'error': str(exc)}), exc.status or 502
 

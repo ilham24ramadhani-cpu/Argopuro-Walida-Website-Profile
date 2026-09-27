@@ -27,14 +27,20 @@ def petani_foto_url(item: dict | None, api_base: str = '') -> str:
         return ''
     full = item.get('fotoPetaniFullUrl')
     if full:
-        return full
-    path = item.get('fotoPetaniUrl') or ''
-    if not path:
-        return ''
-    if isinstance(path, str) and path.startswith('http'):
-        return path
-    base = (api_base or '').rstrip('/')
-    return f'{base}{path}' if base else path
+        url = str(full)
+    else:
+        path = item.get('fotoPetaniUrl') or ''
+        if not path:
+            return ''
+        if isinstance(path, str) and path.startswith('http'):
+            url = path
+        else:
+            base = (api_base or '').rstrip('/')
+            url = f'{base}{path}' if base else path
+    # Upgrade http→https agar aman di situs publik HTTPS
+    if url.startswith('http://'):
+        url = 'https://' + url[len('http://') :]
+    return url
 
 
 def petani_inisial(item: dict | None) -> str:

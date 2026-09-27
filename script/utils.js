@@ -20,12 +20,24 @@
 
   function petaniFotoUrl(item) {
     if (!item) return '';
-    if (item.fotoPetaniFullUrl) return item.fotoPetaniFullUrl;
-    const path = item.fotoPetaniUrl;
-    if (!path) return '';
-    if (String(path).startsWith('http')) return path;
-    const base = (global.APP && global.APP.walidaApi) || '';
-    return base ? `${base.replace(/\/$/, '')}${path}` : path;
+    let url = '';
+    if (item.fotoPetaniFullUrl) {
+      url = String(item.fotoPetaniFullUrl);
+    } else {
+      const path = item.fotoPetaniUrl;
+      if (!path) return '';
+      if (String(path).startsWith('http')) {
+        url = String(path);
+      } else {
+        const base = (global.APP && global.APP.walidaApi) || '';
+        url = base ? `${String(base).replace(/\/$/, '')}${path}` : String(path);
+      }
+    }
+    // Halaman publik HTTPS: paksa https agar tidak diblokir mixed-content
+    if (url.startsWith('http://') && global.location && global.location.protocol === 'https:') {
+      url = `https://${url.slice('http://'.length)}`;
+    }
+    return url;
   }
 
   function petaniInisial(item) {
