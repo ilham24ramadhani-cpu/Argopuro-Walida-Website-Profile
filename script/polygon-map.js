@@ -183,6 +183,7 @@
       setMode,
       setBase,
       setItems,
+      fit,
       focus,
       destroy,
     };
@@ -238,8 +239,9 @@
 
     function fitTo(bounds, animate) {
       if (!bounds) return;
+      const padding = typeof opts.fitPadding === 'function' ? opts.fitPadding() : opts.fitPadding;
       map.fitBounds(bounds, {
-        padding: 48,
+        padding: padding || 48,
         maxZoom: fitMaxZoom,
         ...CAMERA[mode],
         duration: animate === false ? 0 : EASE_MS,
@@ -335,10 +337,12 @@
       if (!map) return;
       const src = map.getSource('polygon');
       if (src) src.setData(geo.data);
-      if (setOpts && setOpts.fit) {
-        const sel = selectedId && featureBounds(selectedId);
-        fitTo(sel || geo.bounds);
-      }
+      if (setOpts && setOpts.fit) fit(setOpts.animate);
+    }
+
+    function fit(animate) {
+      if (!map) return;
+      fitTo((selectedId && featureBounds(selectedId)) || geo.bounds, animate);
     }
 
     function focus(id) {
@@ -357,12 +361,17 @@
     return instance;
   }
 
-  /* Hubungkan tombol [data-map-mode] / [data-map-base] dan .map-hint ke instance */
-  function bindControls(instance, root) {
+  /* Hubungkan tombol [data-map-mode] / [data-map-base] / [data-map-fullsize] dan .map-hint ke instance.
+     options.fullsizeTarget: elemen yang dibuat layar penuh (default: induk toolbar). */
+  function bindControls(instance, root, options) {
     const scope = root || document;
     const modeBtns = scope.querySelectorAll('[data-map-mode]');
     const baseBtns = scope.querySelectorAll('[data-map-base]');
+    const fullBtn = scope.querySelector('[data-map-fullsize]');
+    const fullTarget = (options && options.fullsizeTarget) || scope.parentElement;
     const hint = scope.querySelector('.map-hint');
+    let hintTimer = null;
+    let full = false;
 
     if (!instance.map) {
       scope.querySelectorAll('.map-toggle-group').forEach((el) => {
@@ -385,13 +394,46 @@
         b.classList.toggle('active', on);
         b.setAttribute('aria-pressed', String(on));
       });
-      if (hint) hint.hidden = mode !== '3d';
+    }
+
+    function showHint() {
+      if (!hint) return;
+      clearTimeout(hintTimer);
+      hint.hidden = instance.getMode() !== '3d';
+      if (!hint.hidden) hintTimer = setTimeout(() => (hint.hidden = true), 6000);
+    }
+
+    // Layar penuh via CSS (Fullscreen API tidak tersedia untuk elemen biasa di iPhone).
+    // Satu entri history ditambahkan agar tombol Back di HP menutup layar penuh.
+    function setFullsize(on, fromHistory) {
+      if (!fullBtn || !fullTarget || on === full) return;
+      full = on;
+      fullTarget.classList.toggle('is-fullsize', on);
+      document.documentElement.classList.toggle('map-fullsize-open', on);
+      fullBtn.classList.toggle('active', on);
+      fullBtn.setAttribute('aria-pressed', String(on));
+      const label = on ? 'Keluar layar penuh' : 'Layar penuh';
+      fullBtn.setAttribute('aria-label', label);
+      fullBtn.title = label;
+      fullBtn.querySelector('.map-fullsize-icon').textContent = on ? '✕' : '⛶';
+      fullBtn.querySelector('.map-fullsize-text').textContent = on ? 'Keluar' : 'Layar penuh';
+      global.requestAnimationFrame(() => {
+        if (!instance.map) return;
+        instance.map.resize();
+        instance.fit();
+      });
+      if (on) {
+        global.history.pushState({ polygonMapFull: true }, '');
+      } else if (!fromHistory && global.history.state && global.history.state.polygonMapFull) {
+        global.history.back();
+      }
     }
 
     modeBtns.forEach((b) =>
       b.addEventListener('click', () => {
         instance.setMode(b.dataset.mapMode);
         sync();
+        showHint();
       }),
     );
     baseBtns.forEach((b) =>
@@ -400,7 +442,15 @@
         sync();
       }),
     );
+    if (fullBtn) {
+      fullBtn.addEventListener('click', () => setFullsize(!full));
+      global.addEventListener('popstate', () => setFullsize(false, true));
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') setFullsize(false);
+      });
+    }
     sync();
+    showHint();
   }
 
   global.PolygonMap = { create, bindControls, style, toGeoJson };

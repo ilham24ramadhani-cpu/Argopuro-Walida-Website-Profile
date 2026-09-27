@@ -43,14 +43,30 @@
           <button type="button" class="map-toggle-btn" data-map-base="osm" aria-pressed="false">Peta</button>
           <button type="button" class="map-toggle-btn" data-map-base="satellite" aria-pressed="false">Satelit</button>
         </div>
+        <div class="btn-group btn-group-sm map-toggle-group">
+          <button
+            type="button"
+            class="map-toggle-btn map-fullsize-btn"
+            data-map-fullsize
+            aria-pressed="false"
+            aria-label="Layar penuh"
+            title="Layar penuh"
+          >
+            <span class="map-fullsize-icon" aria-hidden="true">⛶</span>
+            <span class="map-fullsize-text">Layar penuh</span>
+          </button>
+        </div>
       </div>
-      <small class="map-hint" hidden>Klik kanan + geser (atau dua jari) untuk memutar dan memiringkan peta.</small>
+      <small class="map-hint" hidden>
+        <span class="map-hint-desktop">Klik kanan + geser (atau dua jari) untuk memutar dan memiringkan peta.</span>
+        <span class="map-hint-touch">Geser dua jari untuk memutar &amp; memiringkan peta.</span>
+      </small>
     </div>
     <ul class="map-legend" aria-label="Legenda warna petak">
-      <li><span class="map-legend-swatch" style="background:#8B4513"></span>MDPL 1200</li>
-      <li><span class="map-legend-swatch" style="background:#00665D"></span>MDPL 1600</li>
-      <li><span class="map-legend-swatch" style="background:#C9A227"></span>MDPL 1800</li>
-      <li><span class="map-legend-swatch" style="background:#C62828"></span>Stok booking habis</li>
+      <li><span class="map-legend-swatch" style="background:#8B4513"></span><span><span class="map-legend-long">MDPL </span>1200</span></li>
+      <li><span class="map-legend-swatch" style="background:#00665D"></span><span><span class="map-legend-long">MDPL </span>1600</span></li>
+      <li><span class="map-legend-swatch" style="background:#C9A227"></span><span><span class="map-legend-long">MDPL </span>1800</span></li>
+      <li><span class="map-legend-swatch" style="background:#C62828"></span><span class="map-legend-long">Stok booking habis</span><span class="map-legend-short">Habis</span></li>
     </ul>
     <aside class="detail-panel" id="detail-panel" hidden></aside>
   </div>

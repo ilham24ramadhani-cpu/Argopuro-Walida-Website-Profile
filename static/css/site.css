@@ -749,6 +749,48 @@ h2 {
   flex: none;
 }
 
+.map-legend-short,
+.map-hint-touch {
+  display: none;
+}
+
+.map-fullsize-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.map-fullsize-icon {
+  font-size: 15px;
+  line-height: 1;
+}
+
+.map-pane.is-fullsize {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  min-height: 0;
+  background: #d7e4e2;
+}
+
+html.map-fullsize-open,
+html.map-fullsize-open body {
+  overflow: hidden;
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .map-hint-desktop {
+    display: none;
+  }
+
+  .map-hint-touch {
+    display: inline;
+  }
+}
+
 .status-box {
   padding: 18px;
   color: var(--muted);
@@ -1035,7 +1077,14 @@ tr:last-child td {
 
   .peta-layout {
     grid-template-columns: 1fr;
-    grid-template-rows: minmax(42vh, 1fr) minmax(38vh, auto);
+    grid-template-rows: 62vh auto;
+    grid-template-rows: 62svh auto;
+    height: auto;
+  }
+
+  .site.map-mode {
+    height: auto;
+    overflow: visible;
   }
 
   .peta-side {
@@ -1059,9 +1108,32 @@ tr:last-child td {
   .map-legend {
     flex-direction: row;
     flex-wrap: wrap;
-    column-gap: 10px;
-    right: 10px;
-    bottom: 36px;
+    column-gap: 8px;
+    bottom: 34px;
+    padding: 5px 8px;
+    font-size: 11px;
+    max-width: calc(100% - 60px);
+  }
+
+  .map-legend-swatch {
+    width: 10px;
+    height: 10px;
+  }
+
+  .map-legend-long,
+  .map-fullsize-text {
+    display: none;
+  }
+
+  .map-legend-short {
+    display: inline;
+  }
+
+  .map-toggle-btn {
+    padding: 6px 12px;
+  }
+
+  .map-hint {
     font-size: 11px;
   }
 

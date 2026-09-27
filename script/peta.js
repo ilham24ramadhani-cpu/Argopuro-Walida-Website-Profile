@@ -174,15 +174,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function renderMap(filtered, fit) {
     if (!map) {
+      const toolbar = document.getElementById('map-toolbar');
+      const legend = document.querySelector('.map-legend');
       map = window.PolygonMap.create('map', filtered, {
         selectedId,
+        fitPadding: () => ({
+          top: toolbar.offsetTop + toolbar.offsetHeight + 16,
+          bottom: (legend ? legend.offsetHeight + 40 : 0) + 16,
+          left: 32,
+          right: 56,
+        }),
         colorFor: (item) => U.polygonColor(item, false),
         onSelect: (item) => onSelect(U.farmId(item)),
       });
       window.PolygonMap.bindControls(map, document.getElementById('map-toolbar'));
       return;
     }
-    map.setItems(filtered, { fit });
+    map.setItems(filtered, { fit: !!fit, animate: fit !== 'instant' });
   }
 
   async function onSelect(id) {
@@ -210,6 +218,7 @@ document.addEventListener('DOMContentLoaded', () => {
   prosesEl.addEventListener('change', () => renderList(true));
 
   (async function load() {
+    renderMap([]);
     try {
       const res = await fetch(APP.polygonsUrl || '/api/polygons');
       const data = await res.json();
@@ -222,10 +231,9 @@ document.addEventListener('DOMContentLoaded', () => {
         setStatus('', false);
       }
       fillProsesOptions();
-      renderList();
+      renderList('instant');
     } catch (err) {
       setStatus(err.message || 'Tidak bisa memuat data polygon. Periksa WALIDA_API.', true);
-      renderMap([]);
     }
   })();
 });
