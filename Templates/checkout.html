@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% set wa_message = 'Halo Admin ' ~ company.nama ~ ', saya sedang checkout petak ' ~ draft.idPolygon ~ ' (' ~ (draft.namaPolygon or draft.idPolygon) ~ '), ' ~ format_kg(draft.jumlahPesananKg) ~ ' ' ~ draft.prosesPengolahan ~ '. Ada yang ingin saya tanyakan.' %}
 {% block title %}Checkout — {{ company.nama }}{% endblock %}
 {% block content %}
 <div class="wrap booking-wrap">

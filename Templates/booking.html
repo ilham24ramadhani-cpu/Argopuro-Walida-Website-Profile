@@ -1,4 +1,7 @@
 {% extends 'base.html' %}
+{% if item %}
+  {% set wa_message = 'Halo Admin ' ~ company.nama ~ ', saya ingin booking petak ' ~ item.idPolygon ~ ' (' ~ nama ~ ') dan ada yang ingin saya tanyakan.' %}
+{% endif %}
 {% block title %}Booking — {{ company.nama }}{% endblock %}
 {% block content %}
 <div class="wrap booking-wrap">

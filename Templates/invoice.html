@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% set wa_message = 'Halo Admin ' ~ company.nama ~ ', saya ingin konfirmasi pembayaran untuk invoice ' ~ ((inv.idPembelian if inv else '') or id_pembelian) ~ '.' %}
 {% block title %}Invoice {{ id_pembelian }} — {{ company.nama }}{% endblock %}
 {% block content %}
 <div class="wrap invoice-page">

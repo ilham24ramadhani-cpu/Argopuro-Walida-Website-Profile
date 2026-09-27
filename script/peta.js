@@ -35,6 +35,12 @@ document.addEventListener('DOMContentLoaded', () => {
     );
   }
 
+  function waHref(item) {
+    if (!APP.waUrl) return '';
+    const text = `Halo Admin ${APP.companyName || ''}, saya tertarik dengan petak ${item.idPolygon || ''} (${U.farmTitle(item)}). Boleh minta info lebih lanjut?`;
+    return `${APP.waUrl}?text=${encodeURIComponent(text.replace(/\s+/g, ' '))}`;
+  }
+
   function filteredItems() {
     const mdplFilter = mdplEl.value;
     const prosesFilter = prosesEl.value;
@@ -161,6 +167,7 @@ document.addEventListener('DOMContentLoaded', () => {
       ${pembeliHtml}
       <div class="detail-actions">
         <a class="btn btn-block" href="${lahanHref(id)}">Book</a>
+        ${waHref(item) ? `<a class="btn btn-ghost btn-block" href="${U.escapeHtml(waHref(item))}" target="_blank" rel="noopener">Tanya via WhatsApp</a>` : ''}
       </div>
     `;
     panelEl.querySelector('[data-close]')?.addEventListener('click', () => {

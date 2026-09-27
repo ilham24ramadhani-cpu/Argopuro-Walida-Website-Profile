@@ -10,6 +10,10 @@
     <div class="peta-side-head">
       <h2>Kebun</h2>
       <p>Peta kebun mitra Argopuro Walida. Klik petak untuk detail &amp; booking.</p>
+      {% set wa_href = wa_link('Halo Admin ' ~ company.nama ~ ', saya ingin bertanya tentang kebun mitra.') %}
+      {% if wa_href %}
+        <a class="wa-inline" href="{{ wa_href }}" target="_blank" rel="noopener">Tanya admin via WhatsApp</a>
+      {% endif %}
       <div class="peta-filters">
         <label>
           MDPL
@@ -76,6 +80,8 @@
 <script>
   window.APP = {
     walidaApi: {{ walida_api|tojson }},
+    waUrl: {{ wa_link()|tojson }},
+    companyName: {{ company.nama|tojson }},
     lahanUrl: {{ url_for('lahan', id_polygon='__ID__')|tojson }},
     polygonsUrl: {{ url_for('api_polygons')|tojson }},
     polygonUrl: {{ url_for('api_polygon', id_polygon='__ID__')|tojson }},

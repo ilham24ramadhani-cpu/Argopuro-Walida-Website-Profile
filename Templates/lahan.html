@@ -1,4 +1,7 @@
 {% extends 'base.html' %}
+{% if item %}
+  {% set wa_message = 'Halo Admin ' ~ company.nama ~ ', saya tertarik dengan petak ' ~ item.idPolygon ~ ' (' ~ nama ~ '). Boleh minta info lebih lanjut?' %}
+{% endif %}
 {% block title %}{{ nama if item else 'Data petak' }} — {{ company.nama }}{% endblock %}
 {% block content %}
 <div class="wrap booking-wrap">

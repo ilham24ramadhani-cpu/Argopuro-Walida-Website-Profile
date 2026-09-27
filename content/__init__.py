@@ -48,6 +48,8 @@ COMPANY = {
         'nama': 'Argopuro Walida',
         'alamat': '',
         'telepon': '',
+        # Dipakai tombol "Chat Admin" (wa.me). Kosongkan untuk menyembunyikan tombol.
+        'whatsapp': '+62 857-0766-1006',
         'email': '',
         'sosial': {
             'instagram': '',

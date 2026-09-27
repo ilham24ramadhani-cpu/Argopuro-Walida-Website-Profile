@@ -34,12 +34,16 @@ def create_app(config_class=Config):
     )
     app.config.from_object(config_class)
 
+    def wa_link(text: str = '') -> str:
+        return H.wa_link((COMPANY.get('kontak') or {}).get('whatsapp'), text)
+
     @app.context_processor
     def inject_globals():
         return {
             'company': COMPANY,
             'walida_api': app.config.get('WALIDA_API') or '',
             'year': datetime.now().year,
+            'wa_link': wa_link,
         }
 
     @app.route('/script/<path:filename>')
@@ -69,6 +73,8 @@ def create_app(config_class=Config):
             fields.append(('Alamat', k['alamat'], None))
         if k.get('telepon'):
             fields.append(('Telepon', k['telepon'], f"tel:{k['telepon']}"))
+        if k.get('whatsapp'):
+            fields.append(('WhatsApp', k['whatsapp'], wa_link()))
         if k.get('email'):
             fields.append(('Email', k['email'], f"mailto:{k['email']}"))
         for label, key in (
@@ -156,7 +162,7 @@ def create_app(config_class=Config):
                 else:
                     session['booking_draft'] = {
                         'idPolygon': item.get('idPolygon'),
-                        'namaPolygon': H.display_name(item),
+                        'namaPolygon': H.farm_title(item),
                         'jumlahPesananKg': qty_num,
                         'prosesPengolahan': proses_val,
                         'varietas': item.get('varietas') or '',
