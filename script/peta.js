@@ -82,9 +82,8 @@ document.addEventListener('DOMContentLoaded', () => {
       const btn = document.createElement('button');
       btn.type = 'button';
       btn.className = `farm-item${selectedId === id ? ' active' : ''}`;
-      const petani = U.petaniNama(item);
-      const sub = [petani, item.varietas].filter(Boolean).join(' · ') || item.idPolygon || '';
-      btn.innerHTML = `<strong>${U.escapeHtml(U.displayName(item))}</strong><span>${U.escapeHtml(sub)}</span>`;
+      const sub = [item.idPolygon, item.varietas].filter(Boolean).join(' · ');
+      btn.innerHTML = `<strong>${U.escapeHtml(U.farmTitle(item))}</strong><span>${U.escapeHtml(sub)}</span>`;
       btn.addEventListener('click', () => onSelect(id));
       listEl.appendChild(btn);
     });
@@ -139,7 +138,7 @@ document.addEventListener('DOMContentLoaded', () => {
       <header>
         <button type="button" class="detail-close" aria-label="Tutup" data-close>×</button>
         <div class="detail-code">${U.escapeHtml(item.idPolygon || '')}</div>
-        <strong>${U.escapeHtml(U.displayName(item))}</strong>
+        <strong>${U.escapeHtml(U.farmTitle(item))}</strong>
         ${soldOut ? '<span class="badge-habis">Habis</span>' : ''}
       </header>
       <div class="petani-block">

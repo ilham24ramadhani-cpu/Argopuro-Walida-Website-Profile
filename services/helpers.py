@@ -16,6 +16,18 @@ def display_name(item: dict | None) -> str:
     return nama or item.get('idPolygon') or f"Polygon {item.get('id') or ''}"
 
 
+def farm_title(item: dict | None) -> str:
+    """Judul petak. namaKml (dari file KML) tidak ikut berubah saat nama petani diedit,
+    jadi hanya dipakai jika memuat nama petani (mis. "DAMARKANDANG ORANGE")."""
+    petani = petani_nama(item)
+    kml = ((item or {}).get('namaKml') or '').strip()
+    if not petani:
+        return display_name(item)
+    if kml and petani.lower() in kml.lower():
+        return kml
+    return petani
+
+
 def petani_nama(item: dict | None) -> str:
     if not item:
         return ''

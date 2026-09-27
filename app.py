@@ -99,7 +99,7 @@ def create_app(config_class=Config):
         if item:
             ctx = {
                 'item': item,
-                'nama': H.display_name(item),
+                'nama': H.farm_title(item),
                 'petani': H.petani_nama(item) or '—',
                 'foto_url': H.petani_foto_url(item, api_base),
                 'inisial': H.petani_inisial(item),
@@ -172,7 +172,7 @@ def create_app(config_class=Config):
             'booking.html',
             error='',
             item=item,
-            nama=H.display_name(item),
+            nama=H.farm_title(item),
             petani=H.petani_nama(item),
             proses_list=proses_list,
             stock=stock,

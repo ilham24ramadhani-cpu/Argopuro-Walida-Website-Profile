@@ -18,6 +18,16 @@
     return ((item && (item.petani || item.pemasok)) || '').trim();
   }
 
+  // namaKml berasal dari file KML dan tidak ikut berubah saat nama petani diedit di admin.
+  // Dipakai hanya jika memuat nama petani (mis. "DAMARKANDANG ORANGE" untuk petani DAMARKANDANG).
+  function farmTitle(item) {
+    const petani = petaniNama(item);
+    const kml = ((item && item.namaKml) || '').trim();
+    if (!petani) return displayName(item);
+    if (kml && kml.toLowerCase().includes(petani.toLowerCase())) return kml;
+    return petani;
+  }
+
   function petaniFotoUrl(item) {
     if (!item) return '';
     let url = '';
@@ -162,6 +172,7 @@
     COLOR_SELECTED,
     farmId,
     displayName,
+    farmTitle,
     petaniNama,
     petaniFotoUrl,
     petaniInisial,
