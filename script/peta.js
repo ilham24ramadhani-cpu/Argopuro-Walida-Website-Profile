@@ -35,10 +35,19 @@ document.addEventListener('DOMContentLoaded', () => {
     );
   }
 
+  function waText(item) {
+    return `Halo Admin ${APP.companyName || ''}, saya tertarik dengan petak ${item.idPolygon || ''} (${U.farmTitle(item)}). Boleh minta info lebih lanjut?`.replace(/\s+/g, ' ');
+  }
+
   function waHref(item) {
     if (!APP.waUrl) return '';
-    const text = `Halo Admin ${APP.companyName || ''}, saya tertarik dengan petak ${item.idPolygon || ''} (${U.farmTitle(item)}). Boleh minta info lebih lanjut?`;
-    return `${APP.waUrl}?text=${encodeURIComponent(text.replace(/\s+/g, ' '))}`;
+    return `${APP.waUrl}?text=${encodeURIComponent(waText(item))}`;
+  }
+
+  function syncWaContext(item) {
+    if (!window.WaChat) return;
+    if (item) window.WaChat.setContext(waText(item), `Tanya petak ${item.idPolygon || U.farmTitle(item)}`);
+    else window.WaChat.resetContext();
   }
 
   function filteredItems() {
@@ -107,6 +116,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function renderPanel(item) {
+    syncWaContext(item);
     if (!item) {
       panelEl.hidden = true;
       panelEl.innerHTML = '';
@@ -167,7 +177,7 @@ document.addEventListener('DOMContentLoaded', () => {
       ${pembeliHtml}
       <div class="detail-actions">
         <a class="btn btn-block" href="${lahanHref(id)}">Book</a>
-        ${waHref(item) ? `<a class="btn btn-ghost btn-block" href="${U.escapeHtml(waHref(item))}" target="_blank" rel="noopener">Tanya via WhatsApp</a>` : ''}
+        ${waHref(item) ? `<a class="btn btn-ghost btn-block" href="${U.escapeHtml(waHref(item))}" target="_blank" rel="noopener" data-wa-open>Tanya admin tentang petak ini</a>` : ''}
       </div>
     `;
     panelEl.querySelector('[data-close]')?.addEventListener('click', () => {

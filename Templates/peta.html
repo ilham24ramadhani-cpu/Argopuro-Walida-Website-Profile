@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% set wa_message = 'Halo Admin ' ~ company.nama ~ ', saya ingin bertanya tentang kebun mitra.' %}
 {% block title %}Peta kebun — {{ company.nama }}{% endblock %}
 {% block head_extra %}
 <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" />
@@ -10,9 +11,19 @@
     <div class="peta-side-head">
       <h2>Kebun</h2>
       <p>Peta kebun mitra Argopuro Walida. Klik petak untuk detail &amp; booking.</p>
-      {% set wa_href = wa_link('Halo Admin ' ~ company.nama ~ ', saya ingin bertanya tentang kebun mitra.') %}
-      {% if wa_href %}
-        <a class="wa-inline" href="{{ wa_href }}" target="_blank" rel="noopener">Tanya admin via WhatsApp</a>
+      {% set wa_side_href = wa_link(wa_message) %}
+      {% if wa_side_href %}
+        <a class="wa-card" href="{{ wa_side_href }}" target="_blank" rel="noopener" data-wa-open>
+          <span class="wa-avatar wa-avatar--sm">
+            <img src="{{ url_for('static', filename='logo.png') }}" alt="" />
+            <span class="wa-online-dot"></span>
+          </span>
+          <span class="wa-card-text">
+            <strong>Chat dengan admin</strong>
+            <span>Online &middot; tanya petak, harga, atau booking</span>
+          </span>
+          <span class="wa-card-go" aria-hidden="true">&rsaquo;</span>
+        </a>
       {% endif %}
       <div class="peta-filters">
         <label>
