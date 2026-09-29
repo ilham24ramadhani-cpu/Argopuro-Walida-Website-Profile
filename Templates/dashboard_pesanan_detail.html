@@ -1,0 +1,24 @@
+{% extends 'dashboard_base.html' %}
+{% block title %}Detail Pesanan {{ id_pembelian }} — {{ company.nama }}{% endblock %}
+{% block title_key %}title.dashboardOrderDetail{% endblock %}
+{% block head_extra %}
+<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" />
+<script defer src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+{% endblock %}
+{% block dash_content %}
+<div id="order-detail" data-id="{{ id_pembelian }}">
+  <p class="status-box" data-i18n="common.loading">Memuat…</p>
+</div>
+<div hidden id="trace-map-holder">
+  <div class="map-pane trace-map" id="trace-map-pane">
+    <div id="trace-map" class="map-root"></div>
+    {% set map_legend = false %}
+    {% include '_map_controls.html' %}
+  </div>
+</div>
+{% endblock %}
+{% block dash_scripts %}
+<script src="{{ url_for('script_files', filename='polygon-map.js') }}"></script>
+<script src="{{ url_for('script_files', filename='proses-cards.js') }}"></script>
+<script src="{{ url_for('script_files', filename='dashboard-pesanan-detail.js') }}"></script>
+{% endblock %}

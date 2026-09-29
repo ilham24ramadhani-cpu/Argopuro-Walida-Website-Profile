@@ -1,7 +1,8 @@
 {% extends 'base.html' %}
 {% block title %}{{ company.nama }} — Beranda{% endblock %}
+{% block title_key %}title.home{% endblock %}
 {% block content %}
-<section class="hero-carousel" aria-label="Beranda" id="hero-carousel">
+<section class="hero-carousel" aria-label="Beranda" data-i18n-aria-label="nav.home" id="hero-carousel">
   <div class="hero-slides" aria-hidden="true">
     {% for slide in company.galeri %}
       <figure class="hero-slide{% if loop.first %} on{% endif %}" data-slide="{{ loop.index0 }}">
@@ -16,17 +17,18 @@
   <div class="hero-content">
     <h1>{{ company.nama }}</h1>
     {% if company.tagline %}
-      <p class="lede hero-intro">{{ company.tagline }}</p>
+      <p class="lede hero-intro" data-i18n="content.tagline">{{ company.tagline }}</p>
     {% endif %}
     <div class="actions">
-      <a class="btn" href="{{ url_for('peta') }}">Lihat peta kebun</a>
-      <a class="btn btn-ghost" href="{{ url_for('tentang') }}">Tentang kami</a>
+      <a class="btn" href="{{ url_for('peta') }}" data-i18n="home.ctaMap">Lihat peta kebun</a>
+      <a class="btn btn-ghost" href="{{ url_for('proses_pengolahan') }}" data-i18n="home.ctaProcess">Proses pengolahan</a>
+      <a class="btn btn-ghost" href="{{ url_for('tentang') }}" data-i18n="home.ctaAbout">Tentang kami</a>
     </div>
   </div>
   {% if company.galeri|length > 1 %}
-    <button type="button" class="carousel-nav prev" aria-label="Foto sebelumnya" data-carousel-dir="-1">‹</button>
-    <button type="button" class="carousel-nav next" aria-label="Foto berikutnya" data-carousel-dir="1">›</button>
-    <div class="carousel-dots" role="tablist" aria-label="Pilih foto">
+    <button type="button" class="carousel-nav prev" aria-label="Foto sebelumnya" data-i18n-aria-label="home.prevPhoto" data-carousel-dir="-1">‹</button>
+    <button type="button" class="carousel-nav next" aria-label="Foto berikutnya" data-i18n-aria-label="home.nextPhoto" data-carousel-dir="1">›</button>
+    <div class="carousel-dots" role="tablist" aria-label="Pilih foto" data-i18n-aria-label="home.choosePhoto">
       {% for slide in company.galeri %}
         <button
           type="button"

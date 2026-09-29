@@ -1,32 +1,46 @@
 # Argopuro Walida — Website Publik
 
-Company profile + peta polygon kebun + booking e-commerce lahan.
+Company profile + peta polygon kebun + booking green bean + dashboard customer.
 
-Proyek **terpisah** dari sistem admin Walida. Website ini hanya:
+Proyek **terpisah** dari sistem admin Walida. Flask hanya merender kerangka halaman;
+**semua data diambil browser langsung dari API admin** (CORS aktif di admin):
 
-- **Membaca** polygon: `GET {WALIDA_API}/api/polygon`
-- **Menulis** booking: `POST {WALIDA_API}/api/booking`
+- Polygon, petani, proses pengolahan: `GET /api/polygon`, `/api/polygon/<id>`, `/api/petani/<id>`, `/api/polygon-proses`
+- Akun customer: `POST /api/public/customer/signup`, `/login`, `GET/PUT /api/public/customer/me`
+- Booking (wajib login): `POST /api/booking`, invoice `GET /api/booking/<idPembelian>`
+- Pesanan saya: `GET /api/public/customer/orders`, `/orders/<id>` (+ traceability)
 
-Tidak ada URI MongoDB di kode. Login admin / CRUD polygon tidak ada di situs publik.
+Tidak ada URI MongoDB / akses database dari situs ini.
 
 ## Stack
 
-- Backend: **Flask** + **Gunicorn**
-- Data petak/booking: HTTP ke sistem admin (`WALIDA_API`)
-- Database: MongoDB hanya di sistem admin (opsional `pymongo` jika `MONGO_URI` di-set)
-- Frontend: **Jinja2** (`Templates/`) + **JavaScript** biasa (`script/`)
-- CSS: Bootstrap di `static/bootstrap/` + `static/css/site.css`
-- Auth pendukung: **Flask session** (draft booking) + **PyJWT** (utilitas token)
+- Backend: **Flask** + **Gunicorn** (hanya template + file statis)
+- Frontend: **Jinja2** (`Templates/`) + **JavaScript biasa** (`script/`) — tanpa framework, bundler, atau npm
+- CSS: Bootstrap (`static/bootstrap/`) + `static/css/site.css` + `static/css/dashboard.css`
+- Peta: **MapLibre GL 4.7.1** (CDN unpkg) — OSM / Esri satelit, terrain 3D dari DEM terrarium
+- Export Excel: **SheetJS** (CDN, hanya di halaman Pesanan Saya)
+- Bahasa: Indonesia / English (`static/i18n/id.json`, `en.json`)
 
 ## Struktur folder
 
 | Folder | Isi |
 | --- | --- |
-| `Templates/` | File HTML (Jinja2) |
-| `static/` | Bootstrap, CSS, logo, carousel |
-| `script/` | Semua file JavaScript |
+| `Templates/` | Kerangka halaman (Jinja2) |
+| `script/` | Semua JavaScript (lihat di bawah) |
+| `static/` | Bootstrap, CSS, kamus i18n, logo, carousel |
 | `content/` | Teks company / invoice / pembayaran |
-| `services/` | Klien API admin, helper, JWT, DB opsional |
+| `services/` | Helper (`wa_link`), DB opsional |
+
+File JavaScript inti (dimuat di `<head>` pada semua halaman):
+
+| File | Isi |
+| --- | --- |
+| `i18n.js` | `AWI18n` — bahasa aktif, `t()`, format angka/Rupiah/tanggal, atribut `data-i18n*` |
+| `api.js` | `window.AW_API_BASE` (satu-satunya konstanta base URL) + `AWApi` |
+| `auth.js` | `AWAuth` — token customer (localStorage `awCustomerToken`, `awCustomer`), booking tertunda |
+| `utils.js` | `WalidaUtils` — format tampilan polygon/petani, badge, avatar |
+
+Base URL API diambil dari env `WALIDA_API` dan disuntikkan lewat `<meta name="aw-api-base">`.
 
 ## Lokal
 
@@ -48,21 +62,22 @@ Buka http://127.0.0.1:5000
 Set variables: `WALIDA_API` (atau `VITE_WALIDA_API`), `SECRET_KEY`, `PORT`.  
 Start: `gunicorn wsgi:app --bind 0.0.0.0:$PORT`
 
-Jika peta kosong dengan pesan “WALIDA_API belum diatur”, isi origin layanan admin
+Jika muncul pesan “WALIDA_API belum diatur”, isi origin layanan admin
 (contoh `https://argopuro-walida-new-production.up.railway.app`) lalu **Redeploy**.
 
 ## Halaman
 
-- `/` Beranda
-- `/tentang` Tentang
-- `/proses` Proses kopi
-- `/kontak` Kontak
-- `/peta` Peta kebun (filter MDPL & proses, Petani + foto, Book)
-- `/lahan/<id>` Data petak
-- `/lahan/<id>/booking` Form jumlah GB
-- `/lahan/<id>/checkout` Data pembeli + submit
-- `/invoice/<id>` Invoice (harga tampil di sini)
+- `/` Beranda · `/tentang` Tentang · `/kontak` Kontak
+- `/proses-pengolahan` Proses pengolahan (kartu dari API, filter ketinggian & varietas)
+- `/peta` Peta kebun 2D/3D (filter, detail petak, petani, proses)
+- `/lahan/<id>` Detail petak
+- `/lahan/<id>/booking` → `/lahan/<id>/checkout` → `/invoice/<id>` (wajib login)
+- `/login`, `/signup`
+- `/dashboard` Profil · `/dashboard/pesanan` Pesanan Saya (filter, rekap, export CSV/Excel) ·
+  `/dashboard/pesanan/<id>` Detail + traceability
 
 ## Catatan
 
-Body `POST /api/booking` tidak diubah. Harga tidak ditampilkan di detail polygon; muncul di invoice.
+- Body `POST /api/booking` tidak berubah; request hanya dikirim bila ada token (tanpa token → ke halaman login).
+- Token kedaluwarsa (401) → sesi dihapus, isian booking disimpan di sessionStorage, lalu diarahkan ke login dan dikembalikan ke form.
+- Nilai status (`Ordering`, `Complete`, `Belum Lunas`, …) dikirim ke API apa adanya; terjemahan hanya untuk tampilan.

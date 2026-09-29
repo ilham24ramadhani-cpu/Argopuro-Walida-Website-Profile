@@ -1,6 +1,8 @@
 {% extends 'base.html' %}
 {% set wa_message = 'Halo Admin ' ~ company.nama ~ ', saya ingin bertanya tentang kebun mitra.' %}
+{% set wa_message_key = 'wa.peta' %}
 {% block title %}Peta kebun — {{ company.nama }}{% endblock %}
+{% block title_key %}title.map{% endblock %}
 {% block head_extra %}
 <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" />
 <script defer src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
@@ -9,8 +11,8 @@
 <div class="peta-layout">
   <aside class="peta-side">
     <div class="peta-side-head">
-      <h2>Kebun</h2>
-      <p>Peta kebun mitra Argopuro Walida. Klik petak untuk detail &amp; booking.</p>
+      <h2 data-i18n="peta.title">Kebun</h2>
+      <p data-i18n="peta.intro">Peta kebun mitra Argopuro Walida. Klik petak untuk detail &amp; booking.</p>
       {% set wa_side_href = wa_link(wa_message) %}
       {% if wa_side_href %}
         <a class="wa-card" href="{{ wa_side_href }}" target="_blank" rel="noopener" data-wa-open>
@@ -19,70 +21,37 @@
             <span class="wa-online-dot"></span>
           </span>
           <span class="wa-card-text">
-            <strong>Chat dengan admin</strong>
-            <span>Online &middot; tanya petak, harga, atau booking</span>
+            <strong data-i18n="peta.waTitle">Chat dengan admin</strong>
+            <span data-i18n="peta.waSub">Online &middot; tanya petak, harga, atau booking</span>
           </span>
           <span class="wa-card-go" aria-hidden="true">&rsaquo;</span>
         </a>
       {% endif %}
       <div class="peta-filters">
         <label>
-          MDPL
+          <span data-i18n="polygon.mdpl">Ketinggian</span>
           <select id="filter-mdpl">
-            <option value="">Semua</option>
-            <option value="1200">1200 m</option>
-            <option value="1600">1600 m</option>
-            <option value="1800">1800 m</option>
+            <option value="" data-i18n="common.all">Semua</option>
+            <option value="1200">1200 MDPL</option>
+            <option value="1600">1600 MDPL</option>
+            <option value="1800">1800 MDPL</option>
           </select>
         </label>
         <label>
-          Proses pengolahan
+          <span data-i18n="peta.filterProcess">Proses pengolahan</span>
           <select id="filter-proses">
-            <option value="">Semua</option>
+            <option value="" data-i18n="common.all">Semua</option>
           </select>
         </label>
       </div>
     </div>
-    <div id="peta-status" class="status-box">Memuat polygon…</div>
+    <div id="peta-status" class="status-box" data-i18n="peta.loading">Memuat polygon…</div>
     <div class="farm-list" id="farm-list" hidden></div>
   </aside>
   <div class="map-pane">
     <div id="map" class="map-root"></div>
-    <div class="map-toolbar" id="map-toolbar">
-      <div class="map-toolbar-row">
-        <div class="btn-group btn-group-sm map-toggle-group" role="group" aria-label="Mode peta">
-          <button type="button" class="map-toggle-btn" data-map-mode="2d" aria-pressed="false">2D</button>
-          <button type="button" class="map-toggle-btn" data-map-mode="3d" aria-pressed="false">3D</button>
-        </div>
-        <div class="btn-group btn-group-sm map-toggle-group" role="group" aria-label="Peta dasar">
-          <button type="button" class="map-toggle-btn" data-map-base="osm" aria-pressed="false">Peta</button>
-          <button type="button" class="map-toggle-btn" data-map-base="satellite" aria-pressed="false">Satelit</button>
-        </div>
-        <div class="btn-group btn-group-sm map-toggle-group">
-          <button
-            type="button"
-            class="map-toggle-btn map-fullsize-btn"
-            data-map-fullsize
-            aria-pressed="false"
-            aria-label="Layar penuh"
-            title="Layar penuh"
-          >
-            <span class="map-fullsize-icon" aria-hidden="true">⛶</span>
-            <span class="map-fullsize-text">Layar penuh</span>
-          </button>
-        </div>
-      </div>
-      <small class="map-hint" hidden>
-        <span class="map-hint-desktop">Klik kanan + geser (atau dua jari) untuk memutar dan memiringkan peta.</span>
-        <span class="map-hint-touch">Geser dua jari untuk memutar &amp; memiringkan peta.</span>
-      </small>
-    </div>
-    <ul class="map-legend" aria-label="Legenda warna petak">
-      <li><span class="map-legend-swatch" style="background:#8B4513"></span><span><span class="map-legend-long">MDPL </span>1200</span></li>
-      <li><span class="map-legend-swatch" style="background:#00665D"></span><span><span class="map-legend-long">MDPL </span>1600</span></li>
-      <li><span class="map-legend-swatch" style="background:#C9A227"></span><span><span class="map-legend-long">MDPL </span>1800</span></li>
-      <li><span class="map-legend-swatch" style="background:#C62828"></span><span class="map-legend-long">Stok booking habis</span><span class="map-legend-short">Habis</span></li>
-    </ul>
+    {% set map_fullsize = true %}
+    {% include '_map_controls.html' %}
     <aside class="detail-panel" id="detail-panel" hidden></aside>
   </div>
 </div>
@@ -90,15 +59,12 @@
 {% block scripts %}
 <script>
   window.APP = {
-    walidaApi: {{ walida_api|tojson }},
     waUrl: {{ wa_link()|tojson }},
     companyName: {{ company.nama|tojson }},
-    lahanUrl: {{ url_for('lahan', id_polygon='__ID__')|tojson }},
-    polygonsUrl: {{ url_for('api_polygons')|tojson }},
-    polygonUrl: {{ url_for('api_polygon', id_polygon='__ID__')|tojson }},
   };
 </script>
-<script src="{{ url_for('script_files', filename='utils.js') }}"></script>
 <script src="{{ url_for('script_files', filename='polygon-map.js') }}"></script>
+<script src="{{ url_for('script_files', filename='proses-cards.js') }}"></script>
+<script src="{{ url_for('script_files', filename='polygon-detail.js') }}"></script>
 <script src="{{ url_for('script_files', filename='peta.js') }}"></script>
 {% endblock %}

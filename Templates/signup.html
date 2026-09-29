@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% block title %}Daftar — {{ company.nama }}{% endblock %}
+{% block title_key %}title.signup{% endblock %}
+{% block content %}
+<div class="wrap auth-wrap">
+  <form class="auth-card booking-form" id="signup-form" data-auth-page="signup" novalidate>
+    <img class="auth-logo" src="{{ url_for('static', filename='logo.png') }}" alt="" />
+    <h1 data-i18n="auth.signupTitle">Daftar akun</h1>
+    <p class="lede" data-i18n="auth.signupLede">Buat akun untuk booking petak dan memantau pesanan Anda.</p>
+    <p class="status-box auth-notice" id="auth-notice" hidden></p>
+    <div class="photo-picker">
+      <span class="user-avatar user-avatar--lg" id="photo-preview"><span class="avatar-fallback" aria-hidden="true">?</span></span>
+      <label class="photo-picker-btn">
+        <span data-i18n="auth.photo">Foto profil (opsional)</span>
+        <input type="file" name="foto" accept="image/jpeg,image/png,image/webp" />
+        <small class="form-hint" data-i18n="auth.photoHint">JPG, PNG, atau WEBP, maks 5 MB.</small>
+      </label>
+    </div>
+    <label>
+      <span data-i18n="auth.name">Nama lengkap</span>
+      <input type="text" name="nama" autocomplete="name" required />
+    </label>
+    <label>
+      <span data-i18n="auth.username">Username</span>
+      <input type="text" name="username" autocomplete="username" autocapitalize="none" spellcheck="false" pattern="[A-Za-z0-9_.]{3,30}" maxlength="30" required />
+      <small class="form-hint" data-i18n="auth.usernameHint">3–30 karakter: huruf, angka, titik, atau garis bawah.</small>
+    </label>
+    <label>
+      <span data-i18n="auth.password">Password</span>
+      <span class="password-field">
+        <input type="password" name="password" autocomplete="new-password" minlength="6" required />
+        <button type="button" class="password-toggle" data-toggle-password data-i18n="auth.show">Tampilkan</button>
+      </span>
+    </label>
+    <label>
+      <span data-i18n="auth.passwordConfirm">Konfirmasi password</span>
+      <input type="password" name="password2" autocomplete="new-password" minlength="6" required />
+    </label>
+    <p class="form-error" id="auth-error" role="alert" hidden></p>
+    <button type="submit" class="btn btn-block" data-i18n="auth.signupButton">Daftar</button>
+    <p class="auth-switch">
+      <span data-i18n="auth.haveAccount">Sudah punya akun?</span>
+      <a href="{{ url_for('login') }}" data-auth-switch data-i18n="auth.loginLink">Masuk</a>
+    </p>
+  </form>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('script_files', filename='auth-pages.js') }}"></script>
+{% endblock %}

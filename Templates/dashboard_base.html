@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% block head_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}" />
+{% block dash_head %}{% endblock %}
+{% endblock %}
+{% block content %}
+<div class="dash">
+  <header class="dash-header no-print">
+    <div class="dash-user" id="dash-user">
+      <span class="user-avatar user-avatar--md"><span class="avatar-fallback">?</span></span>
+      <div>
+        <span class="dash-hello" data-i18n="dashboard.hello">Halo,</span>
+        <strong class="dash-user-name">—</strong>
+        <span class="dash-user-username"></span>
+      </div>
+    </div>
+    {% include '_lang_switch.html' %}
+  </header>
+  <div class="dash-body">
+    <nav class="dash-nav no-print" aria-label="Dashboard">
+      <a href="{{ url_for('dashboard') }}" class="{% if dash_tab == 'profil' %}active{% endif %}">
+        <span aria-hidden="true">👤</span> <span data-i18n="dashboard.nav.profile">Profil Saya</span>
+      </a>
+      <a href="{{ url_for('dashboard_pesanan') }}" class="{% if dash_tab == 'pesanan' %}active{% endif %}">
+        <span aria-hidden="true">📦</span> <span data-i18n="dashboard.nav.orders">Pesanan Saya</span>
+      </a>
+      <button type="button" data-dash-logout>
+        <span aria-hidden="true">↩</span> <span data-i18n="nav.logout">Keluar</span>
+      </button>
+    </nav>
+    <section class="dash-main">
+      {% block dash_content %}{% endblock %}
+    </section>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('script_files', filename='dashboard-common.js') }}"></script>
+{% block dash_scripts %}{% endblock %}
+{% endblock %}

@@ -1,0 +1,66 @@
+{% extends 'dashboard_base.html' %}
+{% block title %}Profil Saya — {{ company.nama }}{% endblock %}
+{% block title_key %}title.dashboardProfile{% endblock %}
+{% block dash_content %}
+<h1 class="dash-title" data-i18n="dashboard.profile.title">Profil Saya</h1>
+
+<div class="dash-card profile-card" id="profile-card">
+  <p class="status-box" data-i18n="common.loading">Memuat…</p>
+</div>
+
+<div class="stat-grid" id="profile-stats"></div>
+
+<div class="dash-grid-2">
+  <form class="dash-card booking-form" id="profile-form" novalidate>
+    <h2 data-i18n="dashboard.profile.editTitle">Ubah Profil</h2>
+    <div class="photo-picker">
+      <span class="user-avatar user-avatar--lg"><span class="avatar-fallback">?</span></span>
+      <label class="photo-picker-btn">
+        <span data-i18n="dashboard.profile.newPhoto">Foto baru</span>
+        <input type="file" name="foto" accept="image/jpeg,image/png,image/webp" />
+        <small class="form-hint" data-i18n="auth.photoHint">JPG, PNG, atau WEBP, maks 5 MB.</small>
+      </label>
+    </div>
+    <label>
+      <span data-i18n="auth.name">Nama lengkap</span>
+      <input type="text" name="nama" autocomplete="name" required />
+    </label>
+    <label>
+      <span data-i18n="auth.username">Username</span>
+      <input type="text" name="username" autocapitalize="none" spellcheck="false" maxlength="30" required />
+      <small class="form-hint" data-i18n="auth.usernameHint">3–30 karakter: huruf, angka, titik, atau garis bawah.</small>
+    </label>
+    <p class="form-msg" data-msg role="status" hidden></p>
+    <button type="submit" class="btn" data-i18n="common.save">Simpan</button>
+  </form>
+
+  <form class="dash-card booking-form" id="password-form" novalidate>
+    <h2 data-i18n="dashboard.profile.passwordTitle">Ganti Password</h2>
+    <label>
+      <span data-i18n="dashboard.profile.oldPassword">Password lama</span>
+      <span class="password-field">
+        <input type="password" name="passwordLama" autocomplete="current-password" required />
+        <button type="button" class="password-toggle" data-toggle-password data-i18n="auth.show">Tampilkan</button>
+      </span>
+    </label>
+    <label>
+      <span data-i18n="dashboard.profile.newPassword">Password baru</span>
+      <span class="password-field">
+        <input type="password" name="passwordBaru" autocomplete="new-password" minlength="6" required />
+        <button type="button" class="password-toggle" data-toggle-password data-i18n="auth.show">Tampilkan</button>
+      </span>
+    </label>
+    <label>
+      <span data-i18n="auth.passwordConfirm">Konfirmasi password</span>
+      <input type="password" name="passwordKonfirmasi" autocomplete="new-password" minlength="6" required />
+    </label>
+    <p class="form-msg" data-msg role="status" hidden></p>
+    <button type="submit" class="btn" data-i18n="dashboard.profile.changePassword">Ganti Password</button>
+  </form>
+</div>
+{% endblock %}
+{% block dash_scripts %}
+<script src="{{ url_for('script_files', filename='auth-pages.js') }}"></script>
+<script src="{{ url_for('script_files', filename='dashboard-orders-data.js') }}"></script>
+<script src="{{ url_for('script_files', filename='dashboard-profil.js') }}"></script>
+{% endblock %}

@@ -1,8 +1,7 @@
-/* Shared helpers for public map / petani UI */
+/* Helper bersama untuk data polygon / petani (format mengikuti bahasa aktif via AWI18n) */
 (function (global) {
-  const COLOR_AVAILABLE = '#00665D';
-  const COLOR_SOLD_OUT = '#C62828';
-  const COLOR_SELECTED = '#004d47';
+  const COLOR_DEFAULT = '#00665D';
+  const I = () => global.AWI18n;
 
   function farmId(item) {
     return item && (item.idPolygon || item.id);
@@ -28,40 +27,39 @@
     return petani;
   }
 
+  // Halaman publik HTTPS: paksa https agar tidak diblokir mixed-content
+  function secureUrl(url) {
+    const s = url ? String(url) : '';
+    if (s.startsWith('http://') && global.location && global.location.protocol === 'https:') {
+      return `https://${s.slice('http://'.length)}`;
+    }
+    return s;
+  }
+
   function petaniFotoUrl(item) {
     if (!item) return '';
-    let url = '';
-    if (item.fotoPetaniFullUrl) {
-      url = String(item.fotoPetaniFullUrl);
-    } else {
-      const path = item.fotoPetaniUrl;
-      if (!path) return '';
-      if (String(path).startsWith('http')) {
-        url = String(path);
-      } else {
-        const base = (global.APP && global.APP.walidaApi) || '';
-        url = base ? `${String(base).replace(/\/$/, '')}${path}` : String(path);
-      }
-    }
-    // Halaman publik HTTPS: paksa https agar tidak diblokir mixed-content
-    if (url.startsWith('http://') && global.location && global.location.protocol === 'https:') {
-      url = `https://${url.slice('http://'.length)}`;
-    }
-    return url;
+    if (item.fotoPetaniFullUrl) return secureUrl(item.fotoPetaniFullUrl);
+    const path = item.fotoPetaniUrl;
+    if (!path) return '';
+    if (String(path).startsWith('http')) return secureUrl(path);
+    return secureUrl(`${global.AW_API_BASE || ''}${path}`);
+  }
+
+  function initials(nama) {
+    const parts = String(nama || '').trim().split(/\s+/).filter(Boolean);
+    if (!parts.length) return '?';
+    if (parts.length >= 2) return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+    return parts[0].slice(0, 2).toUpperCase();
   }
 
   function petaniInisial(item) {
-    const nama = petaniNama(item);
-    if (!nama) return '?';
-    const parts = nama.split(/\s+/).filter(Boolean);
-    if (parts.length >= 2) return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
-    return nama.slice(0, 2).toUpperCase();
+    return initials(petaniNama(item));
   }
 
   function isSoldOut(item) {
     if (!item) return false;
     if (item.statusBooking === 'habis') return true;
-    if (item.potentialGbTersedia != null) {
+    if (item.potentialGbTersedia != null && item.potentialGbTersedia !== '') {
       return Number(item.potentialGbTersedia) <= 0;
     }
     return false;
@@ -72,54 +70,26 @@
     if (item.potentialGbTersedia != null && item.potentialGbTersedia !== '') {
       return Number(item.potentialGbTersedia);
     }
-    if (item.potentialGb != null) return Number(item.potentialGb);
+    if (item.potentialGb != null && item.potentialGb !== '') return Number(item.potentialGb);
     return null;
+  }
+
+  function canBook(item) {
+    if (!item || isSoldOut(item)) return false;
+    const stock = availableStock(item);
+    return stock != null && stock > 0 && Number(item.hargaPerKg) > 0;
   }
 
   function processNames(item) {
     const list = Array.isArray(item && item.prosesPengolahan) ? item.prosesPengolahan : [];
     return list
       .map((p) => (typeof p === 'string' ? p : p && p.prosesPengolahan))
-      .filter(Boolean);
+      .filter(Boolean)
+      .map((p) => String(p).trim());
   }
 
-  function polygonColor(item, selected) {
-    if (isSoldOut(item)) return item.warnaPolygon || COLOR_SOLD_OUT;
-    if (selected) return COLOR_SELECTED;
-    return item.warnaPolygon || COLOR_AVAILABLE;
-  }
-
-  function outerRing(coordinates) {
-    if (!Array.isArray(coordinates) || !coordinates.length) return null;
-    const first = coordinates[0];
-    if (Array.isArray(first) && typeof first[0] === 'number') return coordinates;
-    if (Array.isArray(first) && Array.isArray(first[0])) return first;
-    return null;
-  }
-
-  function toLatLngs(coordinates) {
-    const coords = outerRing(coordinates);
-    if (!coords || coords.length < 3) return null;
-    const ring = [];
-    for (const pt of coords) {
-      if (!Array.isArray(pt) || pt.length < 2) return null;
-      const [lng, lat] = pt;
-      if (typeof lat !== 'number' || typeof lng !== 'number') return null;
-      ring.push([lat, lng]);
-    }
-    return ring;
-  }
-
-  function farmPolygons(item) {
-    const geometry = Array.isArray(item && item.geometry) ? item.geometry : [];
-    const out = [];
-    geometry.forEach((g, index) => {
-      if (!g || g.type !== 'Polygon') return;
-      const latlngs = toLatLngs(g.coordinates);
-      if (!latlngs) return;
-      out.push({ key: `${farmId(item) || 'p'}-${index}`, latlngs });
-    });
-    return out;
+  function polygonColor(item) {
+    return (item && item.warnaPolygon) || COLOR_DEFAULT;
   }
 
   function landAreaHa(item) {
@@ -130,32 +100,46 @@
     return null;
   }
 
+  /* Titik tengah petak: rata-rata titik ring polygon pertama → { lat, lng } */
+  function centerOf(item) {
+    const geometry = Array.isArray(item && item.geometry) ? item.geometry : [];
+    const g = geometry.find((x) => x && x.type === 'Polygon') || geometry.find((x) => x && x.type === 'Point');
+    if (!g) return null;
+    let pts = g.coordinates;
+    if (g.type === 'Point') pts = [pts];
+    else if (Array.isArray(pts && pts[0] && pts[0][0])) pts = pts[0];
+    pts = (pts || []).filter((p) => Array.isArray(p) && typeof p[0] === 'number' && typeof p[1] === 'number');
+    if (pts.length > 1) {
+      const a = pts[0];
+      const b = pts[pts.length - 1];
+      if (a[0] === b[0] && a[1] === b[1]) pts = pts.slice(0, -1);
+    }
+    if (!pts.length) return null;
+    const sum = pts.reduce((acc, p) => [acc[0] + p[0], acc[1] + p[1]], [0, 0]);
+    return { lng: sum[0] / pts.length, lat: sum[1] / pts.length };
+  }
+
   function formatNumber(value, fractionDigits = 2) {
-    if (value === null || value === undefined || value === '') return '—';
-    const n = Number(value);
-    if (Number.isNaN(n)) return '—';
-    return n.toLocaleString('id-ID', {
-      minimumFractionDigits: 0,
-      maximumFractionDigits: fractionDigits,
-    });
+    return I().formatNumber(value, { maximumFractionDigits: fractionDigits });
   }
 
   function formatKg(value) {
-    if (value === null || value === undefined || value === '') return '—';
-    return `${formatNumber(value)} kg`;
+    const s = formatNumber(value);
+    return s === '—' ? s : `${s} kg`;
   }
 
-  function formatMeter(value) {
-    if (value === null || value === undefined || value === '') return '—';
-    return `${formatNumber(value, 0)} m`;
+  function formatMdpl(value) {
+    const s = formatNumber(value, 0);
+    return s === '—' ? s : `${s} MDPL`;
   }
 
   function formatHa(value) {
-    if (value === null || value === undefined || value === '') return '—';
-    const n = Number(value);
-    if (Number.isNaN(n)) return '—';
-    const digits = Math.abs(n) < 1 ? 4 : 2;
-    return `${formatNumber(n, digits)} Ha`;
+    const s = I().formatNumber(value, { minimumFractionDigits: 2, maximumFractionDigits: 4 });
+    return s === '—' ? s : `${s} ha`;
+  }
+
+  function formatRp(value) {
+    return I().formatCurrency(value);
   }
 
   function escapeHtml(str) {
@@ -163,29 +147,53 @@
       .replace(/&/g, '&amp;')
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;');
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  /* Avatar bulat: foto dengan fallback inisial jika URL kosong / gagal dimuat */
+  function avatarHtml(url, nama, cls) {
+    const ini = escapeHtml(initials(nama));
+    const img = url
+      ? `<img src="${escapeHtml(url)}" alt="${escapeHtml(nama || '')}" loading="lazy" onerror="this.remove()" />`
+      : '';
+    return `<span class="${cls}"><span class="avatar-fallback" aria-hidden="true">${ini}</span>${img}</span>`;
+  }
+
+  function badgeHtml(kind, value) {
+    const cls = String(value || 'none').toLowerCase().replace(/\s+/g, '-');
+    return `<span class="aw-badge aw-badge--${kind}-${escapeHtml(cls)}">${escapeHtml(I().statusLabel(kind, value))}</span>`;
+  }
+
+  function mapsUrl(center) {
+    return center ? `https://www.google.com/maps?q=${center.lat.toFixed(6)},${center.lng.toFixed(6)}` : '';
   }
 
   global.WalidaUtils = {
-    COLOR_AVAILABLE,
-    COLOR_SOLD_OUT,
-    COLOR_SELECTED,
+    COLOR_DEFAULT,
     farmId,
     displayName,
     farmTitle,
     petaniNama,
     petaniFotoUrl,
     petaniInisial,
+    initials,
+    secureUrl,
     isSoldOut,
     availableStock,
+    canBook,
     processNames,
     polygonColor,
-    farmPolygons,
     landAreaHa,
+    centerOf,
     formatNumber,
     formatKg,
-    formatMeter,
+    formatMdpl,
     formatHa,
+    formatRp,
     escapeHtml,
+    avatarHtml,
+    badgeHtml,
+    mapsUrl,
   };
 })(window);

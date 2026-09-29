@@ -1,0 +1,55 @@
+{% extends 'dashboard_base.html' %}
+{% block title %}Pesanan Saya — {{ company.nama }}{% endblock %}
+{% block title_key %}title.dashboardOrders{% endblock %}
+{% block dash_content %}
+<div class="dash-title-row">
+  <h1 class="dash-title" data-i18n="dashboard.orders.title">Pesanan Saya</h1>
+  <div class="export-actions">
+    <button type="button" class="btn btn-ghost btn-sm-pill" data-export="csv" data-i18n="dashboard.orders.exportCsv">Export CSV</button>
+    <button type="button" class="btn btn-ghost btn-sm-pill" data-export="xlsx" data-i18n="dashboard.orders.exportXlsx">Export Excel</button>
+  </div>
+</div>
+
+<form class="dash-card order-filters" id="order-filters">
+  <label>
+    <span data-i18n="order.statusOrder">Status pemesanan</span>
+    <select name="statusPemesanan">
+      <option value="" data-i18n="common.all">Semua</option>
+      <option value="Ordering" data-i18n="order.status.Ordering">Ordering</option>
+      <option value="Complete" data-i18n="order.status.Complete">Complete</option>
+      <option value="Dibatalkan" data-i18n="order.status.Dibatalkan">Dibatalkan</option>
+    </select>
+  </label>
+  <label>
+    <span data-i18n="order.statusPayment">Status pembayaran</span>
+    <select name="statusPembayaran">
+      <option value="" data-i18n="common.all">Semua</option>
+      <option value="Belum Lunas" data-i18n="payment.status.Belum Lunas">Belum Lunas</option>
+      <option value="Pembayaran Bertahap" data-i18n="payment.status.Pembayaran Bertahap">Pembayaran Bertahap</option>
+      <option value="Lunas" data-i18n="payment.status.Lunas">Lunas</option>
+    </select>
+  </label>
+  <label>
+    <span data-i18n="dashboard.orders.dateFrom">Dari tanggal</span>
+    <input type="date" name="dari" />
+  </label>
+  <label>
+    <span data-i18n="dashboard.orders.dateTo">Sampai tanggal</span>
+    <input type="date" name="sampai" />
+  </label>
+  <label class="order-filters-search">
+    <span data-i18n="common.search">Cari</span>
+    <input type="search" name="q" data-i18n-placeholder="dashboard.orders.searchPlaceholder" placeholder="ID, petak, proses, varietas" />
+  </label>
+  <button type="button" class="link-btn" data-reset data-i18n="dashboard.orders.reset">Reset filter</button>
+</form>
+
+<div id="order-summary"></div>
+<p class="status-box" id="order-status" data-i18n="common.loading">Memuat…</p>
+<div id="order-list"></div>
+{% endblock %}
+{% block dash_scripts %}
+<script defer src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+<script src="{{ url_for('script_files', filename='dashboard-orders-data.js') }}"></script>
+<script src="{{ url_for('script_files', filename='dashboard-pesanan.js') }}"></script>
+{% endblock %}

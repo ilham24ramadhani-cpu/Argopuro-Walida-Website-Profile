@@ -114,7 +114,7 @@
     return id == null ? '' : String(id);
   }
 
-  function toGeoJson(items, colorFor) {
+  function toGeoJson(items) {
     const features = [];
     let minLng = Infinity;
     let minLat = Infinity;
@@ -123,9 +123,10 @@
 
     (items || []).forEach((item) => {
       const geometry = Array.isArray(item && item.geometry) ? item.geometry : [];
-      const warna = (colorFor && colorFor(item)) || item.warnaPolygon || DEFAULT_COLOR;
+      const warna = item.warnaPolygon || DEFAULT_COLOR;
       geometry.forEach((g) => {
-        const src = outerRing(g && g.coordinates);
+        if (!g || (g.type && g.type !== 'Polygon')) return;
+        const src = outerRing(g.coordinates);
         if (!src) return;
         const ring = src
           .filter((pt) => Array.isArray(pt) && typeof pt[0] === 'number' && typeof pt[1] === 'number')
@@ -157,9 +158,15 @@
     return { data: { type: 'FeatureCollection', features }, bounds };
   }
 
+  function t(key, fallback) {
+    return global.AWI18n ? global.AWI18n.t(key) : fallback;
+  }
+
   function showFallback(container) {
-    container.innerHTML =
-      '<div class="map-fallback">Browser tidak mendukung peta interaktif. Daftar kebun tetap bisa dipakai.</div>';
+    const div = document.createElement('div');
+    div.className = 'map-fallback';
+    div.textContent = t('map.unsupported', 'Browser tidak mendukung peta interaktif.');
+    container.replaceChildren(div);
   }
 
   function create(containerId, items, options) {
@@ -173,7 +180,7 @@
     let base = readPref(BASE_KEY, ['osm', 'satellite'], 'osm');
     let currentItems = items || [];
     let selectedId = opts.selectedId ? String(opts.selectedId) : '';
-    let geo = toGeoJson(currentItems, opts.colorFor);
+    let geo = toGeoJson(currentItems);
     let map = null;
 
     const instance = {
@@ -183,6 +190,7 @@
       setMode,
       setBase,
       setItems,
+      update: setItems,
       fit,
       focus,
       destroy,
@@ -333,7 +341,7 @@
 
     function setItems(nextItems, setOpts) {
       currentItems = nextItems || [];
-      geo = toGeoJson(currentItems, opts.colorFor);
+      geo = toGeoJson(currentItems);
       if (!map) return;
       const src = map.getSource('polygon');
       if (src) src.setData(geo.data);
@@ -396,6 +404,15 @@
       });
     }
 
+    function syncFullLabel() {
+      if (!fullBtn) return;
+      const label = t(full ? 'map.exitFullscreen' : 'map.fullscreen', full ? 'Keluar layar penuh' : 'Layar penuh');
+      fullBtn.setAttribute('aria-label', label);
+      fullBtn.title = label;
+      fullBtn.querySelector('.map-fullsize-icon').textContent = full ? '✕' : '⛶';
+      fullBtn.querySelector('.map-fullsize-text').textContent = t(full ? 'map.exit' : 'map.fullscreen', full ? 'Keluar' : 'Layar penuh');
+    }
+
     function showHint() {
       if (!hint) return;
       clearTimeout(hintTimer);
@@ -412,11 +429,7 @@
       document.documentElement.classList.toggle('map-fullsize-open', on);
       fullBtn.classList.toggle('active', on);
       fullBtn.setAttribute('aria-pressed', String(on));
-      const label = on ? 'Keluar layar penuh' : 'Layar penuh';
-      fullBtn.setAttribute('aria-label', label);
-      fullBtn.title = label;
-      fullBtn.querySelector('.map-fullsize-icon').textContent = on ? '✕' : '⛶';
-      fullBtn.querySelector('.map-fullsize-text').textContent = on ? 'Keluar' : 'Layar penuh';
+      syncFullLabel();
       global.requestAnimationFrame(() => {
         if (!instance.map) return;
         instance.map.resize();
@@ -450,7 +463,9 @@
       });
     }
     sync();
+    syncFullLabel();
     showHint();
+    document.addEventListener('aw:langchange', syncFullLabel);
   }
 
   global.PolygonMap = { create, bindControls, style, toGeoJson };

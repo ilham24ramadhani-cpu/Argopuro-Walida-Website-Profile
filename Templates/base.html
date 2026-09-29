@@ -4,6 +4,9 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{% block title %}{{ company.nama }}{% endblock %}</title>
+    <meta name="aw-title" content="{% block title_key %}{% endblock %}" />
+    <meta name="aw-brand" content="{{ company.nama }}" />
+    <meta name="aw-api-base" content="{{ walida_api }}" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -16,6 +19,13 @@
     />
     {% block head_extra %}{% endblock %}
     <link rel="stylesheet" href="{{ url_for('static', filename='css/site.css') }}" />
+    {% block head_css %}{% endblock %}
+    <script src="{{ url_for('i18n_dict') }}"></script>
+    <script src="{{ url_for('script_files', filename='i18n.js') }}"></script>
+    <script src="{{ url_for('script_files', filename='api.js') }}"></script>
+    <script src="{{ url_for('script_files', filename='auth.js') }}"></script>
+    <script src="{{ url_for('script_files', filename='utils.js') }}"></script>
+    {% if require_login %}<script>AWAuth.requireLogin();</script>{% endif %}
   </head>
   <body>
     <div class="site{% if map_mode %} map-mode{% endif %}">
@@ -28,17 +38,23 @@
           class="nav-toggle"
           type="button"
           aria-label="Menu"
+          data-i18n-aria-label="nav.menu"
           aria-expanded="false"
           id="nav-toggle"
         >
           ☰
         </button>
         <nav class="nav-links" id="nav-links">
-          <a href="{{ url_for('home') }}" class="{% if request.endpoint == 'home' %}active{% endif %}">Beranda</a>
-          <a href="{{ url_for('tentang') }}" class="{% if request.endpoint == 'tentang' %}active{% endif %}">Tentang</a>
-          <a href="{{ url_for('proses') }}" class="{% if request.endpoint == 'proses' %}active{% endif %}">Proses</a>
-          <a href="{{ url_for('peta') }}" class="{% if request.endpoint == 'peta' %}active{% endif %}">Peta kebun</a>
-          <a href="{{ url_for('kontak') }}" class="{% if request.endpoint == 'kontak' %}active{% endif %}">Kontak</a>
+          {% set ep = request.endpoint or '' %}
+          <a href="{{ url_for('home') }}" class="{% if ep == 'home' %}active{% endif %}" data-i18n="nav.home">Beranda</a>
+          <a href="{{ url_for('tentang') }}" class="{% if ep == 'tentang' %}active{% endif %}" data-i18n="nav.about">Tentang</a>
+          <a href="{{ url_for('proses_pengolahan') }}" class="{% if ep == 'proses_pengolahan' %}active{% endif %}" data-i18n="nav.process">Proses Pengolahan</a>
+          <a href="{{ url_for('peta') }}" class="{% if ep in ('peta', 'lahan', 'booking', 'checkout') %}active{% endif %}" data-i18n="nav.map">Peta kebun</a>
+          <a href="{{ url_for('kontak') }}" class="{% if ep == 'kontak' %}active{% endif %}" data-i18n="nav.contact">Kontak</a>
+          <div class="nav-extra">
+            {% include '_lang_switch.html' %}
+            <div class="nav-auth" id="nav-auth" data-login-url="{{ url_for('login') }}" data-signup-url="{{ url_for('signup') }}"></div>
+          </div>
         </nav>
       </header>
 
@@ -64,11 +80,12 @@
           id="wa-widget"
           data-wa-base="{{ wa_link() }}"
           data-wa-message="{{ wa_text }}"
-          data-wa-page="{{ '1' if wa_message else '' }}"
+          data-wa-message-key="{{ wa_message_key or 'wa.default' }}"
+          data-wa-page="{{ '1' if (wa_message or wa_message_key) else '' }}"
           data-company="{{ company.nama }}"
         >
           <div class="wa-teaser" hidden>
-            <button type="button" class="wa-teaser-close" aria-label="Tutup sapaan">&times;</button>
+            <button type="button" class="wa-teaser-close" aria-label="Tutup sapaan" data-i18n-aria-label="wa.closeTeaser">&times;</button>
             <button type="button" class="wa-teaser-body" data-wa-open>
               <span class="wa-avatar wa-avatar--sm">
                 <img src="{{ url_for('static', filename='logo.png') }}" alt="" />
@@ -76,7 +93,7 @@
               </span>
               <span>
                 <strong>Admin {{ company.nama }}</strong>
-                <span>Butuh bantuan? Chat kami, kami siap membantu.</span>
+                <span data-i18n="wa.teaser">Butuh bantuan? Chat kami, kami siap membantu.</span>
               </span>
             </button>
           </div>
@@ -89,26 +106,26 @@
               </span>
               <span class="wa-panel-who">
                 <strong id="wa-panel-title">Admin {{ company.nama }}</strong>
-                <span class="wa-status">Online &middot; biasanya membalas dalam beberapa menit</span>
+                <span class="wa-status" data-i18n="wa.status">Online &middot; biasanya membalas dalam beberapa menit</span>
               </span>
-              <button type="button" class="wa-panel-close" aria-label="Tutup chat">&times;</button>
+              <button type="button" class="wa-panel-close" aria-label="Tutup chat" data-i18n-aria-label="wa.closeChat">&times;</button>
             </header>
             <div class="wa-panel-body" aria-live="polite">
-              <div class="wa-typing" aria-label="Admin sedang mengetik"><span></span><span></span><span></span></div>
+              <div class="wa-typing" aria-label="Admin sedang mengetik" data-i18n-aria-label="wa.typing"><span></span><span></span><span></span></div>
               <div class="wa-bubble" hidden>
-                <p>Halo! Selamat datang di <strong>{{ company.nama }}</strong>.</p>
-                <p>Ada yang bisa kami bantu soal kopi, petak kebun mitra, atau pesanan Anda?</p>
+                <p data-i18n="wa.bubble1">Halo! Selamat datang di Argopuro Walida.</p>
+                <p data-i18n="wa.bubble2">Ada yang bisa kami bantu soal kopi, petak kebun mitra, atau pesanan Anda?</p>
                 <time class="wa-bubble-time"></time>
               </div>
               <div class="wa-chips" hidden></div>
             </div>
             <form class="wa-panel-form">
-              <textarea rows="2" maxlength="600" aria-label="Pesan untuk admin" placeholder="Tulis pesan&hellip;"></textarea>
-              <button type="submit" class="wa-send" aria-label="Kirim lewat WhatsApp">
+              <textarea rows="2" maxlength="600" aria-label="Pesan untuk admin" data-i18n-aria-label="wa.inputLabel" placeholder="Tulis pesan&hellip;" data-i18n-placeholder="wa.placeholder"></textarea>
+              <button type="submit" class="wa-send" aria-label="Kirim lewat WhatsApp" data-i18n-aria-label="wa.send">
                 <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M3.4 20.4 21 12 3.4 3.6 3.4 10.2 15 12 3.4 13.8z"/></svg>
               </button>
             </form>
-            <p class="wa-panel-note">{{ wa_icon }} Pesan akan dilanjutkan di WhatsApp</p>
+            <p class="wa-panel-note">{{ wa_icon }} <span data-i18n="wa.note">Pesan akan dilanjutkan di WhatsApp</span></p>
           </section>
 
           <a
@@ -123,7 +140,7 @@
             <span class="wa-launcher-pulse" aria-hidden="true"></span>
             <span class="wa-launcher-icon">{{ wa_icon }}</span>
             <span class="wa-launcher-close" aria-hidden="true">&times;</span>
-            <span class="wa-launcher-label">Chat Admin</span>
+            <span class="wa-launcher-label" data-i18n="wa.launcher">Chat Admin</span>
             <span class="wa-launcher-badge" aria-hidden="true">1</span>
           </a>
         </div>
@@ -132,7 +149,7 @@
       {% if not map_mode %}
         <footer class="footer">
           © {{ year }} {{ company.nama }}
-          {% if company.bidang %} · {{ company.bidang }}{% endif %}
+          {% if company.bidang %} · <span data-i18n="company.bidang">{{ company.bidang }}</span>{% endif %}
         </footer>
       {% endif %}
     </div>

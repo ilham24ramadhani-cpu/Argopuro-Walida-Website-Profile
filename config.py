@@ -28,9 +28,6 @@ class Config:
         or os.environ.get('DB_NAME')
         or 'walida'
     )
-    JWT_SECRET = os.environ.get('JWT_SECRET') or SECRET_KEY
-    JWT_ALGORITHM = 'HS256'
-    JWT_EXPIRE_HOURS = int(os.environ.get('JWT_EXPIRE_HOURS') or '24')
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = 'Lax'
     TEMPLATES_AUTO_RELOAD = True

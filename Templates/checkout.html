@@ -1,65 +1,13 @@
 {% extends 'base.html' %}
-{% set wa_message = 'Halo Admin ' ~ company.nama ~ ', saya sedang checkout petak ' ~ draft.idPolygon ~ ' (' ~ (draft.namaPolygon or draft.idPolygon) ~ '), ' ~ format_kg(draft.jumlahPesananKg) ~ ' ' ~ draft.prosesPengolahan ~ '. Ada yang ingin saya tanyakan.' %}
+{% set wa_message_key = 'wa.checkout' %}
 {% block title %}Checkout — {{ company.nama }}{% endblock %}
+{% block title_key %}title.checkout{% endblock %}
 {% block content %}
-<div class="wrap booking-wrap">
-  <p class="kicker">Checkout</p>
-  <h1>Pembelian</h1>
-
-  <section class="section-block">
-    <h2>Ringkasan pesanan</h2>
-    <div class="info-grid compact">
-      <div>
-        <span>Petak</span>
-        <strong>{{ draft.namaPolygon or draft.idPolygon }}</strong>
-      </div>
-      {% if petani %}
-        <div>
-          <span>Petani</span>
-          <strong>{{ petani }}</strong>
-        </div>
-      {% endif %}
-      <div>
-        <span>Proses</span>
-        <strong>{{ draft.prosesPengolahan }}</strong>
-      </div>
-      <div>
-        <span>Jumlah</span>
-        <strong>{{ format_kg(draft.jumlahPesananKg) }}</strong>
-      </div>
-    </div>
-  </section>
-
-  <section class="section-block">
-    <h2>Mekanisme pembayaran</h2>
-    <p class="payment-box">{{ pembayaran }}</p>
-  </section>
-
-  <form class="booking-form" method="post" action="{{ url_for('checkout', id_polygon=draft.idPolygon) }}">
-    <h2>Data pembeli</h2>
-    <label>
-      Nama pembeli
-      <input type="text" name="namaPembeli" value="{{ nama_pembeli }}" required />
-    </label>
-    <label>
-      Kontak (telepon / WA / email)
-      <input type="text" name="kontakPembeli" value="{{ kontak_pembeli }}" required />
-    </label>
-    <label>
-      Alamat
-      <textarea name="alamatPembeli" rows="3" required>{{ alamat_pembeli }}</textarea>
-    </label>
-    <label>
-      Catatan (opsional)
-      <textarea name="catatanPemesanan" rows="2">{{ catatan }}</textarea>
-    </label>
-    {% if form_error %}
-      <p class="form-error">{{ form_error }}</p>
-    {% endif %}
-    <div class="actions">
-      <button type="submit" class="btn">Submit pesanan</button>
-      <a class="btn btn-ghost" href="{{ url_for('booking', id_polygon=draft.idPolygon) }}">Kembali</a>
-    </div>
-  </form>
+<div class="wrap booking-wrap" id="checkout-root" data-id="{{ id_polygon }}" data-payment="{{ pembayaran }}">
+  <p class="status-box" data-i18n="common.loading">Memuat…</p>
 </div>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('script_files', filename='booking.js') }}"></script>
+<script src="{{ url_for('script_files', filename='checkout.js') }}"></script>
 {% endblock %}

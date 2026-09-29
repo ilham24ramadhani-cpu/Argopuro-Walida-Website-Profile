@@ -1,12 +1,13 @@
 {% extends 'base.html' %}
 {% block title %}Tentang — {{ company.nama }}{% endblock %}
+{% block title_key %}title.about{% endblock %}
 {% block content %}
 <div class="wrap">
-  <p class="kicker">Tentang</p>
+  <p class="kicker" data-i18n="nav.about">Tentang</p>
   <h1>{{ company.nama }}</h1>
   <div class="prose">
     {% for p in company.tentang %}
-      <p>{{ p }}</p>
+      <p data-i18n="content.about.{{ loop.index0 }}">{{ p }}</p>
     {% endfor %}
   </div>
 </div>

@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{% block title %}Proses Pengolahan — {{ company.nama }}{% endblock %}
+{% block title_key %}title.process{% endblock %}
+{% block content %}
+<div class="wrap">
+  <p class="kicker" data-i18n="process.kicker">Proses</p>
+  <h1 data-i18n="process.title">Proses Pengolahan</h1>
+  {% if company.proses.pengantar %}
+    <p class="lede" data-i18n="content.process.intro">{{ company.proses.pengantar }}</p>
+  {% endif %}
+
+  <details class="flow-details">
+    <summary data-i18n="process.flowTitle">Alur umum pengolahan</summary>
+    <div class="steps">
+      {% for step in company.proses.langkah %}
+        <article class="step">
+          <div class="step-num">{{ loop.index }}</div>
+          <div>
+            <h3 data-i18n="content.process.steps.{{ loop.index0 }}.title">{{ step.judul }}</h3>
+            <p data-i18n="content.process.steps.{{ loop.index0 }}.text">{{ step.teks }}</p>
+          </div>
+        </article>
+      {% endfor %}
+    </div>
+  </details>
+
+  <section class="section-block">
+    <div class="proses-filters">
+      <label>
+        <span data-i18n="process.filterAltitude">Ketinggian</span>
+        <select id="filter-altitude">
+          <option value="" data-i18n="common.all">Semua</option>
+          <option value="1200">1200 MDPL</option>
+          <option value="1600">1600 MDPL</option>
+          <option value="1800">1800 MDPL</option>
+        </select>
+      </label>
+      <label>
+        <span data-i18n="process.varietas">Varietas</span>
+        <select id="filter-varietas">
+          <option value="" data-i18n="common.all">Semua</option>
+        </select>
+      </label>
+    </div>
+    <p class="status-box" id="proses-status" data-i18n="common.loading">Memuat…</p>
+    <div class="proses-grid" id="proses-grid"></div>
+  </section>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('script_files', filename='proses-cards.js') }}"></script>
+<script src="{{ url_for('script_files', filename='proses-pengolahan.js') }}"></script>
+{% endblock %}

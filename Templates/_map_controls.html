@@ -1,0 +1,33 @@
+{# Toolbar 2D/3D + Peta/Satelit + legenda. Variabel opsional: map_fullsize (bool), map_legend (bool) #}
+<div class="map-toolbar" data-map-toolbar>
+  <div class="map-toolbar-row">
+    <div class="btn-group btn-group-sm map-toggle-group" role="group" aria-label="Mode peta" data-i18n-aria-label="map.modeLabel">
+      <button type="button" class="map-toggle-btn" data-map-mode="2d" aria-pressed="false">2D</button>
+      <button type="button" class="map-toggle-btn" data-map-mode="3d" aria-pressed="false">3D</button>
+    </div>
+    <div class="btn-group btn-group-sm map-toggle-group" role="group" aria-label="Peta dasar" data-i18n-aria-label="map.baseLabel">
+      <button type="button" class="map-toggle-btn" data-map-base="osm" aria-pressed="false" data-i18n="map.baseMap">Peta</button>
+      <button type="button" class="map-toggle-btn" data-map-base="satellite" aria-pressed="false" data-i18n="map.baseSatellite">Satelit</button>
+    </div>
+    {% if map_fullsize %}
+      <div class="btn-group btn-group-sm map-toggle-group">
+        <button type="button" class="map-toggle-btn map-fullsize-btn" data-map-fullsize aria-pressed="false" aria-label="Layar penuh" title="Layar penuh">
+          <span class="map-fullsize-icon" aria-hidden="true">⛶</span>
+          <span class="map-fullsize-text">Layar penuh</span>
+        </button>
+      </div>
+    {% endif %}
+  </div>
+  <small class="map-hint" hidden>
+    <span class="map-hint-desktop" data-i18n="map.hint3d">Klik kanan + geser (atau dua jari) untuk memutar dan memiringkan peta.</span>
+    <span class="map-hint-touch" data-i18n="map.hint3dTouch">Geser dua jari untuk memutar &amp; memiringkan peta.</span>
+  </small>
+</div>
+{% if map_legend is not defined or map_legend %}
+  <ul class="map-legend" aria-label="Legenda warna petak" data-i18n-aria-label="map.legendLabel">
+    <li><span class="map-legend-swatch" style="background:#8B4513"></span><span><span class="map-legend-long" data-i18n="map.legendBrown">Coklat · MDPL</span> 1200</span></li>
+    <li><span class="map-legend-swatch" style="background:#00665D"></span><span><span class="map-legend-long" data-i18n="map.legendGreen">Hijau · MDPL</span> 1600</span></li>
+    <li><span class="map-legend-swatch" style="background:#C9A227"></span><span><span class="map-legend-long" data-i18n="map.legendGold">Gold · MDPL</span> 1800</span></li>
+    <li><span class="map-legend-swatch" style="background:#C62828"></span><span class="map-legend-long" data-i18n="map.legendSoldOut">Merah · stok booking habis</span><span class="map-legend-short" data-i18n="map.legendSoldOutShort">Habis</span></li>
+  </ul>
+{% endif %}

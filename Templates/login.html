@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% block title %}Masuk — {{ company.nama }}{% endblock %}
+{% block title_key %}title.login{% endblock %}
+{% block content %}
+<div class="wrap auth-wrap">
+  <form class="auth-card booking-form" id="login-form" data-auth-page="login" novalidate>
+    <img class="auth-logo" src="{{ url_for('static', filename='logo.png') }}" alt="" />
+    <h1 data-i18n="auth.loginTitle">Masuk</h1>
+    <p class="lede" data-i18n="auth.loginLede">Masuk untuk booking petak kebun dan melihat pesanan Anda.</p>
+    <p class="status-box auth-notice" id="auth-notice" hidden></p>
+    <label>
+      <span data-i18n="auth.username">Username</span>
+      <input type="text" name="username" autocomplete="username" autocapitalize="none" spellcheck="false" required />
+    </label>
+    <label>
+      <span data-i18n="auth.password">Password</span>
+      <span class="password-field">
+        <input type="password" name="password" autocomplete="current-password" required />
+        <button type="button" class="password-toggle" data-toggle-password data-i18n="auth.show">Tampilkan</button>
+      </span>
+    </label>
+    <p class="form-error" id="auth-error" role="alert" hidden></p>
+    <button type="submit" class="btn btn-block" data-i18n="auth.loginButton">Masuk</button>
+    <p class="auth-switch">
+      <span data-i18n="auth.noAccount">Belum punya akun?</span>
+      <a href="{{ url_for('signup') }}" data-auth-switch data-i18n="auth.signupLink">Daftar</a>
+    </p>
+  </form>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('script_files', filename='auth-pages.js') }}"></script>
+{% endblock %}
