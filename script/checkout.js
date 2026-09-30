@@ -60,8 +60,6 @@ document.addEventListener('DOMContentLoaded', () => {
           ${draft.petani ? `<div><span>${esc(I.t('polygon.farmer'))}</span><strong>${esc(draft.petani)}</strong></div>` : ''}
           <div><span>${esc(I.t('booking.process'))}</span><strong>${esc(draft.prosesPengolahan)}</strong></div>
           <div><span>${esc(I.t('checkout.qty'))}</span><strong>${esc(U.formatKg(draft.jumlahPesananKg))}</strong></div>
-          <div><span>${esc(I.t('polygon.hargaPerKg'))}</span><strong>${esc(U.formatRp(draft.hargaPerKg))}</strong></div>
-          <div><span>${esc(I.t('booking.subtotal'))}</span><strong>${esc(U.formatRp(draft.productPrice))}</strong></div>
         </div>
       </section>
       <section class="section-block">

@@ -84,7 +84,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const sub = [item.idPolygon, item.namaKml].filter(Boolean).join(' · ');
     const meta = [U.formatMdpl(item.mdpl), U.formatHa(U.landAreaHa(item)), item.varietas].filter((x) => x && x !== '—');
     const stock = U.availableStock(item);
-    const harga = Number(item.hargaPerKg) > 0 ? `${U.formatRp(item.hargaPerKg)}/kg` : '';
     return `
       <span class="farm-swatch" style="background:${esc(U.polygonColor(item))}"></span>
       ${U.avatarHtml(U.petaniFotoUrl(item), U.petaniNama(item) || '?', 'petani-avatar petani-avatar--sm')}
@@ -94,9 +93,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <span class="farm-item-meta">${esc(meta.join(' · '))}</span>
         <span class="farm-item-stock">
           <span class="stock-badge ${soldOut ? 'stock-badge--habis' : 'stock-badge--ok'}">${esc(I.t(soldOut ? 'polygon.soldOut' : 'polygon.available'))}</span>
-          ${stock != null ? `<span>${esc(U.formatKg(stock))}</span>` : ''}
-          ${harga ? `<span>${esc(harga)}</span>` : ''}
-        </span>
+          ${stock != null ? `<span>${esc(U.formatKg(stock))}</span>` : ''}        </span>
       </span>`;
   }
 

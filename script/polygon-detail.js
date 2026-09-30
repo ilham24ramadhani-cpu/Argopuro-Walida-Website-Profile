@@ -60,7 +60,6 @@
       ['polygon.mdpl', esc(U.formatMdpl(item.mdpl))],
       ['polygon.luas', esc(U.formatHa(U.landAreaHa(item)))],
       ['polygon.proses', prosesChips(item)],
-      ['polygon.hargaPerKg', esc(Number(item.hargaPerKg) > 0 ? U.formatRp(item.hargaPerKg) : '—')],
       ['polygon.stock', esc(stockText(item))],
       ['polygon.cherry', esc(U.formatKg(item.jumlahCherry))],
     ];

@@ -51,12 +51,6 @@
       };
     }
 
-    function subtotalText() {
-      const qty = Number(values.jumlahPesananKg);
-      const harga = Number(item.hargaPerKg);
-      return qty > 0 && harga > 0 ? U.formatRp(qty * harga) : '—';
-    }
-
     function render() {
       if (error || !item) {
         root.innerHTML = `<h1>${esc(I.t('booking.title'))}</h1>
@@ -73,7 +67,6 @@
         <h1>${esc(U.farmTitle(item))}</h1>
         <p class="lede">${esc([item.idPolygon, U.petaniNama(item)].filter(Boolean).join(' · '))}</p>
         <div class="info-grid">
-          <div><span>${esc(I.t('polygon.hargaPerKg'))}</span><strong>${esc(U.formatRp(item.hargaPerKg))}</strong></div>
           <div><span>${esc(I.t('polygon.stock'))}</span><strong>${esc(stock == null ? '—' : U.formatKg(stock))}</strong></div>
           <div><span>${esc(I.t('polygon.varietas'))}</span><strong>${esc(item.varietas || '—')}</strong></div>
         </div>
@@ -92,11 +85,6 @@
               <input type="number" name="jumlahPesananKg" min="0.01" step="0.01" ${stock != null ? `max="${stock}"` : ''}
                 value="${esc(values.jumlahPesananKg)}" placeholder="${esc(I.t('booking.qtyPlaceholder'))}" required />
             </label>
-            <div class="price-box">
-              <span>${esc(I.t('booking.subtotal'))}</span>
-              <strong data-subtotal>${esc(subtotalText())}</strong>
-              <small>${esc(I.t('booking.subtotalHint'))}</small>
-            </div>
             ${formError ? `<p class="form-error" role="alert">${esc(formError)}</p>` : ''}
             <div class="actions">
               <button type="submit" class="btn">${esc(I.t('booking.toCheckout'))}</button>
@@ -108,10 +96,7 @@
         }`;
       const form = root.querySelector('form');
       if (!form) return;
-      form.addEventListener('input', () => {
-        readForm();
-        root.querySelector('[data-subtotal]').textContent = subtotalText();
-      });
+      form.addEventListener('input', readForm);
       form.addEventListener('submit', (e) => {
         e.preventDefault();
         readForm();
