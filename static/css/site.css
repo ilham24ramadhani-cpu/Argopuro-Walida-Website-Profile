@@ -222,6 +222,23 @@ textarea {
   margin-top: 12px;
 }
 
+.hero-desc {
+  white-space: pre-line;
+}
+
+.hero-fade {
+  transition: opacity 0.4s ease;
+}
+
+.hero-carousel.hero-loading .hero-fade,
+.hero-content.swap {
+  opacity: 0;
+}
+
+.hero-content {
+  transition: opacity 0.25s ease;
+}
+
 .hero-carousel .btn-ghost {
   color: #fff;
   border-color: rgba(255, 255, 255, 0.55);

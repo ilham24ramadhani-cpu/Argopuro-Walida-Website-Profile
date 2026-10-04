@@ -1,9 +1,13 @@
 {% extends 'base.html' %}
 {% block title %}{{ company.nama }} — Beranda{% endblock %}
 {% block title_key %}title.home{% endblock %}
+{% block head_css %}
+<noscript><style>.hero-carousel.hero-loading .hero-fade { opacity: 1; }</style></noscript>
+{% endblock %}
 {% block content %}
-<section class="hero-carousel" aria-label="Beranda" data-i18n-aria-label="nav.home" id="hero-carousel">
-  <div class="hero-slides" aria-hidden="true">
+{# Slide & teks di bawah adalah cadangan; carousel.js menggantinya dengan Konten Home dari admin bila ada. #}
+<section class="hero-carousel hero-loading" aria-label="Beranda" data-i18n-aria-label="nav.home" id="hero-carousel">
+  <div class="hero-slides hero-fade" aria-hidden="true">
     {% for slide in company.galeri %}
       <figure class="hero-slide{% if loop.first %} on{% endif %}" data-slide="{{ loop.index0 }}">
         <img
@@ -14,7 +18,7 @@
     {% endfor %}
   </div>
   <div class="hero-scrim"></div>
-  <div class="hero-content">
+  <div class="hero-content hero-fade" id="hero-content">
     <h1>{{ company.nama }}</h1>
     {% if company.tagline %}
       <p class="lede hero-intro" data-i18n="content.tagline">{{ company.tagline }}</p>
@@ -25,21 +29,6 @@
       <a class="btn btn-ghost" href="{{ url_for('tentang') }}" data-i18n="home.ctaAbout">Tentang kami</a>
     </div>
   </div>
-  {% if company.galeri|length > 1 %}
-    <button type="button" class="carousel-nav prev" aria-label="Foto sebelumnya" data-i18n-aria-label="home.prevPhoto" data-carousel-dir="-1">‹</button>
-    <button type="button" class="carousel-nav next" aria-label="Foto berikutnya" data-i18n-aria-label="home.nextPhoto" data-carousel-dir="1">›</button>
-    <div class="carousel-dots" role="tablist" aria-label="Pilih foto" data-i18n-aria-label="home.choosePhoto">
-      {% for slide in company.galeri %}
-        <button
-          type="button"
-          role="tab"
-          aria-label="Foto {{ loop.index }}"
-          class="{% if loop.first %}on{% endif %}"
-          data-carousel-dot="{{ loop.index0 }}"
-        ></button>
-      {% endfor %}
-    </div>
-  {% endif %}
 </section>
 {% endblock %}
 {% block scripts %}

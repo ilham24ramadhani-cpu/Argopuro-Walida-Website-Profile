@@ -6,6 +6,7 @@ Proyek **terpisah** dari sistem admin Walida. Flask hanya merender kerangka hala
 **semua data diambil browser langsung dari API admin** (CORS aktif di admin):
 
 - Polygon, petani, proses pengolahan: `GET /api/polygon`, `/api/polygon/<id>`, `/api/petani/<id>`, `/api/polygon-proses`
+- Slide beranda (Kelola Konten Home di admin): `GET /api/public/konten-home` — jika kosong/gagal, beranda memakai foto bawaan `static/carousel/`
 - Akun customer: `POST /api/public/customer/signup`, `/login`, `GET/PUT /api/public/customer/me`
 - Booking (wajib login): `POST /api/booking`, invoice `GET /api/booking/<idPembelian>`
 - Pesanan saya: `GET /api/public/customer/orders`, `/orders/<id>` (+ traceability)

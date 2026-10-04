@@ -103,6 +103,7 @@
     polygon: (id) => request(`/api/polygon/${enc(id)}`),
     petani: (id) => request(`/api/petani/${enc(id)}`),
     prosesList: () => request('/api/polygon-proses'),
+    kontenHome: () => request('/api/public/konten-home'),
     booking(body) {
       if (!token()) return Promise.reject(apiError('Login diperlukan', 401));
       return request('/api/booking', { method: 'POST', body, auth: true, handle401: false });
