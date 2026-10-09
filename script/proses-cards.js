@@ -42,8 +42,83 @@
     return `<span class="proses-alt">${esc(U.formatMdpl(item.altitude))}</span>`;
   }
 
-  /* Kartu ringkas: deskripsi 3 baris + tombol Selengkapnya (data-proses-more = index) */
-  function cardHtml(item, index) {
+  /* idProses konten berbentuk "PRS001", di petak berupa angka 1 → bandingkan angkanya */
+  function procId(value) {
+    const m = String(value ?? '').match(/(\d+)\s*$/);
+    return m ? Number(m[1]) : null;
+  }
+
+  function normName(value) {
+    return String(value || '').trim().toLowerCase();
+  }
+
+  /* Proses milik petak yang sama dengan konten (idProses, atau nama jika id tak ada) */
+  function matchingProcess(item, polygon) {
+    const id = procId(item.idProses);
+    const name = normName(item.namaProses);
+    const list = Array.isArray(polygon && polygon.prosesPengolahan) ? polygon.prosesPengolahan : [];
+    return list.find((p) => {
+      if (typeof p === 'string') return normName(p) === name;
+      if (!p) return false;
+      if (id != null && procId(p.idProses) === id) return true;
+      return normName(p.prosesPengolahan) === name;
+    });
+  }
+
+  function altOf(value) {
+    return value == null || value === '' ? null : Number(value);
+  }
+
+  /* Petak yang memakai proses ini. Jika ada konten lain untuk proses yang sama
+     dengan altitude persis = mdpl petak, petak itu milik konten tersebut. */
+  function polygonsFor(item, polygons, contents) {
+    if (!item) return [];
+    const alt = altOf(item.altitude);
+    return (polygons || []).filter((p) => {
+      if (!matchingProcess(item, p)) return false;
+      const mdpl = altOf(p.mdpl);
+      if (mdpl == null || alt === mdpl) return true;
+      return !(contents || []).some(
+        (c) => c !== item && altOf(c.altitude) === mdpl && matchingProcess(c, p),
+      );
+    });
+  }
+
+  function mapUrl(item, matched) {
+    const proc = matched.length ? matchingProcess(item, matched[0]) : null;
+    const name = proc ? (typeof proc === 'string' ? proc : proc.prosesPengolahan) : item.namaProses;
+    return name ? `/peta?proses=${encodeURIComponent(String(name).trim())}` : '/peta';
+  }
+
+  /* Satu chip per petani (petak pertama milik petani tsb. dibuka di peta) */
+  function farmersHtml(matched) {
+    const byName = new Map();
+    matched.forEach((p) => {
+      const nama = U.petaniNama(p) || U.farmTitle(p);
+      if (!byName.has(nama)) byName.set(nama, p);
+    });
+    const chips = [...byName.entries()]
+      .sort((a, b) => a[0].localeCompare(b[0], I.locale()))
+      .map(
+        ([nama, p]) => `
+          <a class="proses-farmer" href="/peta?polygon=${encodeURIComponent(U.farmId(p))}" title="${esc([U.farmId(p), U.formatMdpl(p.mdpl)].join(' · '))}">
+            ${U.avatarHtml(U.petaniFotoUrl(p), nama, 'petani-avatar petani-avatar--xs')}
+            <span>${esc(nama)}</span>
+          </a>`,
+      )
+      .join('');
+    return `
+      <div class="proses-farmers">
+        <p class="proses-farmers-title">${esc(I.t('process.farmers'))}</p>
+        ${chips ? `<div class="proses-farmer-list">${chips}</div>` : `<p class="proses-farmers-empty">${esc(I.t('process.noFarmers'))}</p>`}
+      </div>`;
+  }
+
+  /* Kartu ringkas: deskripsi 3 baris + tombol Selengkapnya (data-proses-more = index).
+     opts.polygons (+ opts.contents = semua konten proses): tampilkan petani terkait + tombol Cek map poligon */
+  function cardHtml(item, index, opts) {
+    const polygons = opts && opts.polygons;
+    const matched = polygons ? polygonsFor(item, polygons, opts.contents) : [];
     return `
       <article class="proses-card">
         ${imageHtml(item, 'proses-img')}
@@ -56,6 +131,8 @@
           ${chipsHtml(item)}
           ${item.proses ? `<p class="proses-desc clamp-3">${esc(item.proses)}</p>
           <button type="button" class="link-btn" data-proses-more="${index}">${esc(I.t('process.readMore'))}</button>` : ''}
+          ${polygons ? `${farmersHtml(matched)}
+          <a class="btn proses-map-btn" href="${esc(mapUrl(item, matched))}">${esc(I.t('process.checkMap'))}</a>` : ''}
         </div>
       </article>`;
   }
@@ -127,5 +204,5 @@
       .sort((a, b) => score(b) - score(a));
   }
 
-  global.AWProses = { load, cardHtml, fullHtml, bindMore, openModal, forPolygon, notes };
+  global.AWProses = { load, cardHtml, fullHtml, bindMore, openModal, forPolygon, polygonsFor, notes };
 })(window);

@@ -1,4 +1,5 @@
-/* Halaman /proses-pengolahan: kartu dari GET /api/polygon-proses + filter altitude & varietas */
+/* Halaman /proses-pengolahan: kartu dari GET /api/polygon-proses + petani terkait (GET /api/polygon)
+   + filter altitude & varietas */
 document.addEventListener('DOMContentLoaded', () => {
   const I = window.AWI18n;
   const esc = window.WalidaUtils.escapeHtml;
@@ -7,6 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const altEl = document.getElementById('filter-altitude');
   const varEl = document.getElementById('filter-varietas');
   let items = [];
+  let polygons = [];
   let error = '';
   let loaded = false;
 
@@ -42,7 +44,7 @@ document.addEventListener('DOMContentLoaded', () => {
     statusEl.classList.remove('error');
     statusEl.hidden = list.length > 0;
     statusEl.textContent = I.t(items.length ? 'process.noMatch' : 'process.empty');
-    grid.innerHTML = list.map((p, i) => window.AWProses.cardHtml(p, i)).join('');
+    grid.innerHTML = list.map((p, i) => window.AWProses.cardHtml(p, i, { polygons, contents: items })).join('');
     window.AWProses.bindMore(grid, list);
   }
 
@@ -53,8 +55,14 @@ document.addEventListener('DOMContentLoaded', () => {
     render();
   });
 
-  window.AWProses.load()
-    .then((list) => {
+  const polygonsReq = window.AWApi.polygons()
+    .then((data) => {
+      polygons = Array.isArray(data) ? data : [];
+    })
+    .catch(() => {});
+
+  Promise.all([window.AWProses.load(), polygonsReq])
+    .then(([list]) => {
       items = list;
     })
     .catch((err) => {

@@ -138,7 +138,10 @@
     "readMore": "Read more",
     "empty": "Processing content is not available yet.",
     "noMatch": "No processing methods match the filter.",
-    "forPolygon": "Processing methods for this plot"
+    "forPolygon": "Processing methods for this plot",
+    "farmers": "Farmers",
+    "noFarmers": "No farmer plots use this process yet.",
+    "checkMap": "Check polygon map"
   },
   "booking": {
     "title": "Booking",

@@ -138,7 +138,10 @@
     "readMore": "Selengkapnya",
     "empty": "Konten proses pengolahan belum tersedia.",
     "noMatch": "Tidak ada proses yang cocok dengan filter.",
-    "forPolygon": "Proses pengolahan petak ini"
+    "forPolygon": "Proses pengolahan petak ini",
+    "farmers": "Petani",
+    "noFarmers": "Belum ada petak petani dengan proses ini.",
+    "checkMap": "Cek map poligon"
   },
   "booking": {
     "title": "Booking",

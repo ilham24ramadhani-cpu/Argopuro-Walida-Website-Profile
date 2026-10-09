@@ -177,6 +177,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  /* ?proses=… (tombol Cek map poligon di kartu proses): preset filter, nama case-insensitive */
+  function applyQueryFilters() {
+    const proses = (new URLSearchParams(location.search).get('proses') || '').trim().toLowerCase();
+    if (!proses) return;
+    const opt = [...prosesEl.options].find((o) => o.value && o.value.toLowerCase() === proses);
+    if (opt) prosesEl.value = opt.value;
+  }
+
   /* Kembali dari login lewat tombol "Masuk untuk Booking": buka lagi petak yang dipilih */
   function restoreSelection() {
     const pending = window.AWAuth.peekPendingBooking();
@@ -215,6 +223,7 @@ document.addEventListener('DOMContentLoaded', () => {
       items = data;
       setStatus(items.length ? '' : 'peta.empty', false);
       fillProsesOptions();
+      applyQueryFilters();
       renderList('instant');
       restoreSelection();
     } catch (err) {

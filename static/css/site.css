@@ -2662,6 +2662,72 @@ tr:last-child td {
   color: var(--ink);
 }
 
+.proses-farmers {
+  border-top: 1px solid var(--line);
+  padding-top: 10px;
+  display: grid;
+  gap: 6px;
+}
+
+.proses-farmers-title {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ink);
+}
+
+.proses-farmers-empty {
+  margin: 0;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.proses-farmer-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.proses-farmer {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px 3px 3px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--teal-dark);
+  text-decoration: none;
+  background: var(--white);
+}
+
+.proses-farmer:hover {
+  border-color: var(--teal);
+  background: var(--teal-soft);
+}
+
+.petani-avatar--xs {
+  width: 24px;
+  height: 24px;
+  font-size: 10px;
+}
+
+.proses-card-body .proses-map-btn {
+  justify-self: start;
+  margin-top: 4px;
+  padding: 8px 16px;
+  font-size: 13px;
+  text-decoration: none;
+}
+
+.proses-card-body {
+  flex: 1;
+  align-content: start;
+}
+
 .link-btn {
   justify-self: start;
   border: 0;
