@@ -83,6 +83,24 @@ Jika muncul pesan “WALIDA_API belum diatur”, isi origin layanan admin
 5. Isi jumlah green beans (kg) tiap kloter — total tidak boleh melebihi stok booking petak
 6. Halaman Purchase: ringkasan kloter, mekanisme pembayaran, data pembeli
 7. Invoice per kloter (harga per proses dari server) + cetak / PDF
+
+## Alur pemesanan Kontrak
+
+1. Pilih petak di peta kebun
+2. Pilih tipe pemesanan (Kontrak) — otomatis pembayaran bertahap (status `Pembayaran Bertahap`)
+3. Pilih waktu kontrak: bulan mulai – bulan selesai (inklusif, maks. 24 bulan; Januari – November = 11 bulan)
+4. Pilih DP 30–70%
+5. Pilih jumlah kloter, 6. proses tiap kloter, 7. jumlah green beans (kg) — sama seperti Normal
+8. Sistem menghitung: DP = total nilai kontrak × DP%; sisa = total − DP; cicilan per bulan = sisa ÷ jumlah bulan
+   (pembulatan ke rupiah, selisih masuk cicilan terakhir).
+   Contoh: kontrak Januari – Mei (5 bulan), nilai Rp300 jt, DP 30% → DP Rp90 jt, cicilan 5 × Rp42 jt
+9. Halaman Purchase: jadwal pembayaran dalam persen (DP + cicilan per bulan) — nominal Rupiah tetap disembunyikan
+10. Invoice: total nilai kontrak, DP, sisa, dan jadwal cicilan per bulan dalam Rupiah + cetak / PDF
+
+Perhitungan resmi dilakukan API admin (`kontrak.jadwalPembayaran` di respons booking/invoice/pesanan);
+`AWKontrak` di `booking.js` memakai rumus yang sama sebagai cadangan untuk respons lama.
+Termin kontrak juga disimpan sebagai `pembayaranBertahapBaris` (belum lunas) agar admin tinggal menandai lunas.
+
 - `/login`, `/signup`
 - `/dashboard` Profil · `/dashboard/pesanan` Pesanan Saya (filter, rekap, export CSV/Excel) ·
   `/dashboard/pesanan/<id>` Detail + traceability
@@ -92,6 +110,7 @@ Jika muncul pesan “WALIDA_API belum diatur”, isi origin layanan admin
 - Harga tidak ditampilkan di peta, detail petak, booking, maupun checkout — hanya di invoice (dan riwayat pesanan).
 - Body `POST /api/booking`: `tipeBooking` + `kloter: [{ prosesPengolahan, jumlahPesananKg }]` (satu pesanan, banyak kloter).
   Untuk 1 kloter, `prosesPengolahan` juga dikirim di root agar tetap kompatibel dengan API lama.
+  Tipe Kontrak menambah `kontrak: { bulanMulai: 'YYYY-MM', bulanSelesai: 'YYYY-MM', dpPersen }`.
   Request hanya dikirim bila ada token (tanpa token → ke halaman login).
 - Token kedaluwarsa (401) → sesi dihapus, isian booking disimpan di sessionStorage, lalu diarahkan ke login dan dikembalikan ke form.
 - Nilai status (`Ordering`, `Complete`, `Belum Lunas`, …) dikirim ke API apa adanya; terjemahan hanya untuk tampilan.

@@ -33,6 +33,8 @@ document.addEventListener('DOMContentLoaded', () => {
       };
     });
     const subtotal = kloter.reduce((s, k) => s + k.subtotal, 0);
+    const totalHarga = p.totalHarga !== undefined && p.totalHarga !== null && p.totalHarga !== '' ? num(p.totalHarga) : subtotal;
+    const tipeBooking = p.tipeBooking || 'Normal';
     return {
       idPembelian: raw.idPembelian || '—',
       tanggalPemesanan: raw.tanggalPemesanan || '',
@@ -43,17 +45,52 @@ document.addEventListener('DOMContentLoaded', () => {
       pesanan: {
         idPolygon: p.idPolygon || '',
         petakLabel: [p.namaPolygon, p.idPolygon].filter((x) => x && String(x).trim()).join(' · ') || '—',
-        tipeBooking: p.tipeBooking || 'Normal',
+        tipeBooking,
         kloter,
         jumlahPesananKg: kloter.reduce((s, k) => s + k.jumlahPesananKg, 0),
         subtotal,
-        totalHarga: p.totalHarga !== undefined && p.totalHarga !== null && p.totalHarga !== '' ? num(p.totalHarga) : subtotal,
+        totalHarga,
+        kontrak: tipeBooking === 'Kontrak' ? window.AWKontrak.contractSummary(p.kontrak || raw.kontrak, totalHarga) : null,
         tipeProduk: p.tipeProduk || 'Green Beans',
         varietas: p.varietas || '—',
         biayaPajak: num(p.biayaPajak),
         biayaPengiriman: num(p.biayaPengiriman),
       },
     };
+  }
+
+  function kontrakSectionHtml(k) {
+    const K = window.AWKontrak;
+    const rp = (n) => U.formatRp(n);
+    return `
+        <section class="inv-section">
+          <h2>${esc(I.t('kontrak.invoiceTitle'))}</h2>
+          <div class="inv-table-wrap">
+            <table class="inv-table">
+              <thead><tr>
+                <th>${esc(I.t('kontrak.payment'))}</th>
+                <th>${esc(I.t('kontrak.due'))}</th>
+                <th class="num">${esc(I.t('kontrak.amount'))}</th>
+              </tr></thead>
+              <tbody>${k.jadwalPembayaran
+                .map(
+                  (row) => `<tr>
+                <td>${esc(row.jenis === 'DP' ? I.t('kontrak.dpN', { p: U.formatNumber(k.dpPersen) }) : K.scheduleRowLabel(row, k.jumlahBulan))}</td>
+                <td>${esc(K.scheduleRowDue(row))}</td>
+                <td class="num">${esc(rp(row.jumlahRp))}</td>
+              </tr>`,
+                )
+                .join('')}</tbody>
+            </table>
+          </div>
+          <div class="inv-summary inv-summary--wide">
+            <div><span>${esc(I.t('kontrak.period'))}</span><strong>${esc(K.periodLabel(k))}</strong></div>
+            <div><span>${esc(I.t('kontrak.total'))}</span><strong>${esc(rp(k.totalNilaiKontrak))}</strong></div>
+            <div><span>${esc(I.t('kontrak.dpN', { p: U.formatNumber(k.dpPersen) }))}</span><strong>${esc(rp(k.nilaiDp))}</strong></div>
+            <div><span>${esc(I.t('kontrak.remaining'))}</span><strong>${esc(rp(k.sisaPembayaran))}</strong></div>
+            <div><span>${esc(I.t('kontrak.installment'))}</span><strong>${esc(I.t('kontrak.perMonthX', { amount: rp(k.cicilanPerBulan), n: k.jumlahBulan }))}</strong></div>
+          </div>
+        </section>`;
   }
 
   function render() {
@@ -101,6 +138,12 @@ document.addEventListener('DOMContentLoaded', () => {
             <div><span>${esc(I.t('order.statusPayment'))}</span>${U.badgeHtml('payment', inv.statusPembayaran)}</div>
             <div><span>${esc(I.t('booking.type'))}</span><strong>${esc(window.AWBookingDraft.typeLabel(p.tipeBooking))}</strong></div>
             <div><span>${esc(I.t('booking.kloterCount'))}</span><strong>${esc(U.formatNumber(p.kloter.length, 0))}</strong></div>
+            ${
+              p.kontrak
+                ? `<div><span>${esc(I.t('kontrak.period'))}</span><strong>${esc(window.AWKontrak.periodLabel(p.kontrak))} (${esc(I.t('booking.kontrakMonths', { n: p.kontrak.jumlahBulan }))})</strong></div>
+                   <div><span>${esc(I.t('kontrak.dp'))}</span><strong>${esc(U.formatNumber(p.kontrak.dpPersen))}%</strong></div>`
+                : ''
+            }
           </div>
         </section>
         <section class="inv-section">
@@ -150,9 +193,10 @@ document.addEventListener('DOMContentLoaded', () => {
                    <div><span>${esc(I.t('order.shipping'))}</span><strong>${esc(fmt(p.biayaPengiriman))}</strong></div>`
                 : ''
             }
-            <div class="inv-total-band"><span>${esc(I.t('invoice.total'))}</span><strong>${esc(U.formatRp(p.totalHarga))}</strong></div>
+            <div class="inv-total-band"><span>${esc(I.t(p.kontrak ? 'kontrak.invoiceTotal' : 'invoice.total'))}</span><strong>${esc(U.formatRp(p.totalHarga))}</strong></div>
           </div>
         </section>
+        ${p.kontrak ? kontrakSectionHtml(p.kontrak) : ''}
         <section class="inv-pay">
           <h2>${esc(I.t('invoice.paymentInfo'))}</h2>
           <p>${esc(pembayaran)}</p>

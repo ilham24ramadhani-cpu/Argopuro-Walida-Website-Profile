@@ -65,8 +65,41 @@ document.addEventListener('DOMContentLoaded', () => {
       </div>`;
   }
 
+  function kontrakOf(o) {
+    return o.tipeBooking === 'Kontrak' ? window.AWKontrak.contractSummary(o.kontrak, O.num(o.totalHarga)) : null;
+  }
+
+  function kontrakTable(k) {
+    const K = window.AWKontrak;
+    const rows = k.jadwalPembayaran
+      .map(
+        (r) => `<tr>
+          <td>${esc(r.jenis === 'DP' ? I.t('kontrak.dpN', { p: U.formatNumber(k.dpPersen) }) : K.scheduleRowLabel(r, k.jumlahBulan))}</td>
+          <td>${esc(K.scheduleRowDue(r))}</td>
+          <td class="num">${esc(U.formatRp(r.jumlahRp))}</td>
+        </tr>`,
+      )
+      .join('');
+    return `<h3 class="sub-title">${esc(I.t('kontrak.invoiceTitle'))}</h3>
+      <div class="table-wrap kloter-table">
+        <table>
+          <thead><tr>
+            <th>${esc(I.t('kontrak.payment'))}</th>
+            <th>${esc(I.t('kontrak.due'))}</th>
+            <th class="num">${esc(I.t('kontrak.amount'))}</th>
+          </tr></thead>
+          <tbody>${rows}</tbody>
+          <tfoot><tr>
+            <td colspan="2">${esc(I.t('kontrak.total'))}</td>
+            <td class="num"><strong>${esc(U.formatRp(k.totalNilaiKontrak))}</strong></td>
+          </tr></tfoot>
+        </table>
+      </div>`;
+  }
+
   function orderCard(o) {
     const multi = O.isMultiKloter(o);
+    const kontrak = kontrakOf(o);
     const subtotal = U.formatRp(O.kloterOf(o).reduce((s, k) => s + O.num(k.subtotal ?? O.num(k.jumlahPesananKg) * O.num(k.hargaPerKg)), 0));
     return `
       <article class="dash-card">
@@ -81,6 +114,13 @@ document.addEventListener('DOMContentLoaded', () => {
           ${row('order.product', txt(o.tipeProduk))}
           ${row('polygon.varietas', txt(o.varietas))}
           ${row('booking.type', txt(window.AWBookingDraft.typeLabel(o.tipeBooking || 'Normal')))}
+          ${
+            kontrak
+              ? row('kontrak.period', txt(`${window.AWKontrak.periodLabel(kontrak)} (${I.t('booking.kontrakMonths', { n: kontrak.jumlahBulan })})`)) +
+                `<div><dt>${esc(I.t('kontrak.dpN', { p: U.formatNumber(kontrak.dpPersen) }))}</dt><dd>${txt(U.formatRp(kontrak.nilaiDp))}</dd></div>` +
+                row('kontrak.installment', txt(I.t('kontrak.perMonthX', { amount: U.formatRp(kontrak.cicilanPerBulan), n: kontrak.jumlahBulan })))
+              : ''
+          }
           ${row('booking.kloterCount', txt(U.formatNumber(O.kloterOf(o).length, 0)))}
           ${row('booking.process', txt(O.processLabel(o)))}
           ${row('checkout.polygon', txt([o.namaPolygon, o.idPolygon].filter(Boolean).join(' · ')))}
@@ -91,7 +131,8 @@ document.addEventListener('DOMContentLoaded', () => {
           ${row('order.shipping', txt(U.formatRp(o.biayaPengiriman || 0)))}
         </dl>
         ${multi ? kloterTable(o) : ''}
-        <div class="total-band"><span>${esc(I.t('order.total'))}</span><strong>${esc(U.formatRp(o.totalHarga))}</strong></div>
+        <div class="total-band"><span>${esc(I.t(kontrak ? 'kontrak.total' : 'order.total'))}</span><strong>${esc(U.formatRp(o.totalHarga))}</strong></div>
+        ${kontrak ? kontrakTable(kontrak) : ''}
         <h3 class="sub-title">${esc(I.t('invoice.buyer'))}</h3>
         <dl class="kv">
           ${row('checkout.name', txt(o.namaPembeli))}

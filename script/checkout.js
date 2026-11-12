@@ -60,8 +60,50 @@ document.addEventListener('DOMContentLoaded', () => {
       </div>`;
   }
 
+  const K = window.AWKontrak;
+  const kontrak = draft && draft.tipeBooking === 'Kontrak' ? draft.kontrak : null;
+
+  /* Jadwal dalam persen; nominal Rupiah dihitung server dari harga per proses dan tampil di invoice */
+  function kontrakScheduleHtml() {
+    const plan = K.percentPlan(kontrak);
+    const pct = (v) => `${U.formatNumber(v)}%`;
+    const rows = [
+      `<tr><td>${esc(I.t('kontrak.dp'))}</td><td>${esc(I.t('kontrak.dueOnOrder'))}</td><td class="num">${esc(pct(plan.dp))}</td></tr>`,
+      ...Array.from(
+        { length: plan.n },
+        (_, i) => `<tr>
+          <td>${esc(I.t('kontrak.installmentN', { n: i + 1, total: plan.n }))}</td>
+          <td>${esc(K.monthLabel(K.addMonths(kontrak.bulanMulai, i)))}</td>
+          <td class="num">${esc(pct(plan.perMonth))}</td>
+        </tr>`,
+      ),
+    ].join('');
+    return `
+      <div class="info-grid">
+        <div><span>${esc(I.t('kontrak.period'))}</span><strong>${esc(K.periodLabel(kontrak))}</strong><small class="d-block text-muted">${esc(I.t('booking.kontrakMonths', { n: plan.n }))}</small></div>
+        <div><span>${esc(I.t('kontrak.dp'))}</span><strong>${esc(pct(plan.dp))}</strong></div>
+        <div><span>${esc(I.t('kontrak.installment'))}</span><strong>${esc(pct(plan.perMonth))}</strong><small class="d-block text-muted">${esc(I.t('kontrak.timesMonths', { n: plan.n }))}</small></div>
+      </div>
+      <p class="kontrak-plan">${esc(I.t('kontrak.formula', { n: plan.n }))}</p>
+      <div class="table-wrap kloter-table">
+        <table>
+          <thead><tr>
+            <th>${esc(I.t('kontrak.payment'))}</th>
+            <th>${esc(I.t('kontrak.due'))}</th>
+            <th class="num">${esc(I.t('kontrak.share'))}</th>
+          </tr></thead>
+          <tbody>${rows}</tbody>
+          <tfoot><tr>
+            <td colspan="2">${esc(I.t('kontrak.total'))}</td>
+            <td class="num"><strong>100%</strong></td>
+          </tr></tfoot>
+        </table>
+      </div>
+      <p class="form-hint">${esc(I.t('kontrak.rpHint'))}</p>`;
+  }
+
   function render() {
-    if (!draft || draft.idPolygon !== id || !kloter.length) {
+    if (!draft || draft.idPolygon !== id || !kloter.length || (draft.tipeBooking === 'Kontrak' && !kontrak)) {
       root.innerHTML = `
         <h1>${esc(I.t('checkout.title'))}</h1>
         <p class="status-box error">${esc(I.t('checkout.noDraft'))}</p>
@@ -92,6 +134,7 @@ document.addEventListener('DOMContentLoaded', () => {
       </section>
       <section class="section-block">
         <h2>${esc(I.t('checkout.payment'))}</h2>
+        ${kontrak ? kontrakScheduleHtml() : ''}
         <p class="payment-box">${esc(root.dataset.payment)}</p>
       </section>
       <form class="booking-form" novalidate>
@@ -119,6 +162,7 @@ document.addEventListener('DOMContentLoaded', () => {
       idPolygon: id,
       tipeBooking: draft.tipeBooking,
       kloter,
+      kontrak,
       ...values,
       page: location.pathname,
     });
@@ -162,6 +206,9 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     // Hanya untuk 1 kloter: API lama (tanpa dukungan kloter[]) menolak pesanan multi-kloter, bukan salah hitung
     if (kloter.length === 1) body.prosesPengolahan = kloter[0].prosesPengolahan;
+    if (kontrak) {
+      body.kontrak = { bulanMulai: kontrak.bulanMulai, bulanSelesai: kontrak.bulanSelesai, dpPersen: kontrak.dpPersen };
+    }
     if (draft.varietas) body.varietas = draft.varietas;
     if (draft.jenisKopi) body.jenisKopi = draft.jenisKopi;
     if (values.catatanPemesanan.trim()) body.catatanPemesanan = values.catatanPemesanan.trim();

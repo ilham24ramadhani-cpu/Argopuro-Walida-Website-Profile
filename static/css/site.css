@@ -2039,6 +2039,10 @@ tr:last-child td {
   font-weight: 700;
 }
 
+.inv-summary--wide {
+  width: min(420px, 100%);
+}
+
 .inv-total-band {
   background: var(--inv-green-dark);
   color: #fff;
@@ -3034,8 +3038,34 @@ tr:last-child td {
   font-weight: 700;
 }
 
+.kontrak-period {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 14px;
+}
+
+.kontrak-plan {
+  margin: 0;
+  padding: 10px 14px;
+  border-left: 3px solid var(--teal);
+  background: var(--teal-soft);
+  border-radius: 0 10px 10px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--teal-dark);
+}
+
+.section-block .kontrak-plan {
+  margin: 12px 0 0;
+}
+
+.section-block .kloter-table + .form-hint {
+  margin: 8px 0 12px;
+}
+
 @media (max-width: 600px) {
-  .kloter-card {
+  .kloter-card,
+  .kontrak-period {
     grid-template-columns: 1fr;
   }
 }
