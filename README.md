@@ -72,7 +72,17 @@ Jika muncul pesan “WALIDA_API belum diatur”, isi origin layanan admin
 - `/proses-pengolahan` Proses pengolahan (kartu dari API, filter ketinggian & varietas)
 - `/peta` Peta kebun 2D/3D (filter, detail petak, petani, proses)
 - `/lahan/<id>` Detail petak
-- `/lahan/<id>/booking` → `/lahan/<id>/checkout` → `/invoice/<id>` (wajib login)
+- `/lahan/<id>/booking` → `/lahan/<id>/checkout` (Purchase) → `/invoice/<id>` (wajib login)
+
+## Alur pemesanan Normal
+
+1. Pilih petak di peta kebun
+2. Pilih tipe pemesanan (Normal)
+3. Pilih jumlah kloter pembelian (maks. = jumlah proses di petak)
+4. Pilih proses tiap kloter (proses tidak boleh sama antar kloter)
+5. Isi jumlah green beans (kg) tiap kloter — total tidak boleh melebihi stok booking petak
+6. Halaman Purchase: ringkasan kloter, mekanisme pembayaran, data pembeli
+7. Invoice per kloter (harga per proses dari server) + cetak / PDF
 - `/login`, `/signup`
 - `/dashboard` Profil · `/dashboard/pesanan` Pesanan Saya (filter, rekap, export CSV/Excel) ·
   `/dashboard/pesanan/<id>` Detail + traceability
@@ -80,6 +90,8 @@ Jika muncul pesan “WALIDA_API belum diatur”, isi origin layanan admin
 ## Catatan
 
 - Harga tidak ditampilkan di peta, detail petak, booking, maupun checkout — hanya di invoice (dan riwayat pesanan).
-- Body `POST /api/booking` tidak berubah; request hanya dikirim bila ada token (tanpa token → ke halaman login).
+- Body `POST /api/booking`: `tipeBooking` + `kloter: [{ prosesPengolahan, jumlahPesananKg }]` (satu pesanan, banyak kloter).
+  Untuk 1 kloter, `prosesPengolahan` juga dikirim di root agar tetap kompatibel dengan API lama.
+  Request hanya dikirim bila ada token (tanpa token → ke halaman login).
 - Token kedaluwarsa (401) → sesi dihapus, isian booking disimpan di sessionStorage, lalu diarahkan ke login dan dikembalikan ke form.
 - Nilai status (`Ordering`, `Complete`, `Belum Lunas`, …) dikirim ke API apa adanya; terjemahan hanya untuk tampilan.

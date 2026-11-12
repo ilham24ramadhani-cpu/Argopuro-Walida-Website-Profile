@@ -172,6 +172,7 @@ def create_app(config_class=Config):
             id_pembelian=id_pembelian,
         )
 
+
     return app
 
 

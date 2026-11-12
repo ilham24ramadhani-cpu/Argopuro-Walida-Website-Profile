@@ -15,5 +15,6 @@
     paymentDefault: {{ pembayaran_default|tojson }},
   };
 </script>
+<script src="{{ url_for('script_files', filename='booking.js') }}"></script>
 <script src="{{ url_for('script_files', filename='invoice.js') }}"></script>
 {% endblock %}

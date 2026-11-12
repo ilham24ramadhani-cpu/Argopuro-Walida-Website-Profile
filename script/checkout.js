@@ -1,4 +1,4 @@
-/* Langkah Checkout: data pembeli → POST /api/booking (Bearer token) → Invoice */
+/* Langkah Purchase: ringkasan kloter + pembayaran + data pembeli → POST /api/booking (Bearer token) → Invoice */
 document.addEventListener('DOMContentLoaded', () => {
   const U = window.WalidaUtils;
   const I = window.AWI18n;
@@ -6,6 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const root = document.getElementById('checkout-root');
   const id = root.dataset.id;
   const draft = window.AWBookingDraft.read();
+  const kloter = window.AWBookingDraft.kloter(draft);
   const customer = window.AWAuth.getCustomer() || {};
   let formError = '';
   let formInfo = '';
@@ -33,8 +34,34 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  function kloterTableHtml() {
+    const rows = kloter
+      .map(
+        (k, i) => `<tr>
+          <td>${esc(I.t('booking.kloterN', { n: i + 1 }))}</td>
+          <td>${esc(k.prosesPengolahan)}</td>
+          <td class="num">${esc(U.formatKg(k.jumlahPesananKg))}</td>
+        </tr>`,
+      )
+      .join('');
+    return `<div class="table-wrap kloter-table">
+        <table>
+          <thead><tr>
+            <th>${esc(I.t('booking.kloter'))}</th>
+            <th>${esc(I.t('booking.process'))}</th>
+            <th class="num">${esc(I.t('checkout.qty'))}</th>
+          </tr></thead>
+          <tbody>${rows}</tbody>
+          <tfoot><tr>
+            <td colspan="2">${esc(I.t('booking.totalQty'))}</td>
+            <td class="num"><strong>${esc(U.formatKg(draft.jumlahPesananKg))}</strong></td>
+          </tr></tfoot>
+        </table>
+      </div>`;
+  }
+
   function render() {
-    if (!draft || draft.idPolygon !== id) {
+    if (!draft || draft.idPolygon !== id || !kloter.length) {
       root.innerHTML = `
         <h1>${esc(I.t('checkout.title'))}</h1>
         <p class="status-box error">${esc(I.t('checkout.noDraft'))}</p>
@@ -58,9 +85,10 @@ document.addEventListener('DOMContentLoaded', () => {
         <div class="info-grid">
           <div><span>${esc(I.t('checkout.polygon'))}</span><strong>${esc(draft.namaPolygon || draft.idPolygon)}</strong><small class="d-block text-muted">${esc(draft.idPolygon)}</small></div>
           ${draft.petani ? `<div><span>${esc(I.t('polygon.farmer'))}</span><strong>${esc(draft.petani)}</strong></div>` : ''}
-          <div><span>${esc(I.t('booking.process'))}</span><strong>${esc(draft.prosesPengolahan)}</strong></div>
-          <div><span>${esc(I.t('checkout.qty'))}</span><strong>${esc(U.formatKg(draft.jumlahPesananKg))}</strong></div>
+          <div><span>${esc(I.t('booking.type'))}</span><strong>${esc(window.AWBookingDraft.typeLabel(draft.tipeBooking))}</strong></div>
+          <div><span>${esc(I.t('booking.kloterCount'))}</span><strong>${esc(U.formatNumber(kloter.length, 0))}</strong></div>
         </div>
+        ${kloterTableHtml()}
       </section>
       <section class="section-block">
         <h2>${esc(I.t('checkout.payment'))}</h2>
@@ -89,8 +117,8 @@ document.addEventListener('DOMContentLoaded', () => {
   function saveAndLogin(message) {
     window.AWAuth.savePendingBooking({
       idPolygon: id,
-      prosesPengolahan: draft.prosesPengolahan,
-      jumlahPesananKg: draft.jumlahPesananKg,
+      tipeBooking: draft.tipeBooking,
+      kloter,
       ...values,
       page: location.pathname,
     });
@@ -120,8 +148,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     const body = {
       idPolygon: draft.idPolygon,
+      tipeBooking: draft.tipeBooking || 'Normal',
+      kloter: kloter.map((k) => ({ prosesPengolahan: k.prosesPengolahan, jumlahPesananKg: k.jumlahPesananKg })),
       jumlahPesananKg: draft.jumlahPesananKg,
-      prosesPengolahan: draft.prosesPengolahan,
       namaPembeli: values.namaPembeli.trim(),
       kontakPembeli: values.kontakPembeli.trim(),
       alamatPembeli: values.alamatPembeli.trim(),
@@ -131,6 +160,8 @@ document.addEventListener('DOMContentLoaded', () => {
       biayaPajak: 0,
       tipePajak: 'penjumlahan',
     };
+    // Hanya untuk 1 kloter: API lama (tanpa dukungan kloter[]) menolak pesanan multi-kloter, bukan salah hitung
+    if (kloter.length === 1) body.prosesPengolahan = kloter[0].prosesPengolahan;
     if (draft.varietas) body.varietas = draft.varietas;
     if (draft.jenisKopi) body.jenisKopi = draft.jenisKopi;
     if (values.catatanPemesanan.trim()) body.catatanPemesanan = values.catatanPemesanan.trim();

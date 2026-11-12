@@ -2,6 +2,7 @@
 document.addEventListener('DOMContentLoaded', () => {
   const U = window.WalidaUtils;
   const I = window.AWI18n;
+  const O = window.AWOrders;
   const esc = U.escapeHtml;
   const root = document.getElementById('order-detail');
   const holder = document.getElementById('trace-map-holder');
@@ -38,8 +39,35 @@ document.addEventListener('DOMContentLoaded', () => {
       .join('')}</ol>`;
   }
 
+  function kloterTable(o) {
+    const rows = O.kloterOf(o)
+      .map(
+        (k, i) => `<tr>
+          <td>${esc(k.kloter || i + 1)}</td>
+          <td>${txt(k.prosesPengolahan)}</td>
+          <td class="num">${esc(U.formatNumber(k.jumlahPesananKg))}</td>
+          <td class="num">${esc(U.formatRp(k.hargaPerKg))}</td>
+          <td class="num">${esc(U.formatRp(k.subtotal ?? O.num(k.jumlahPesananKg) * O.num(k.hargaPerKg)))}</td>
+        </tr>`,
+      )
+      .join('');
+    return `<div class="table-wrap kloter-table">
+        <table>
+          <thead><tr>
+            <th>${esc(I.t('booking.kloter'))}</th>
+            <th>${esc(I.t('booking.process'))}</th>
+            <th class="num">${esc(I.t('order.qtyKg'))}</th>
+            <th class="num">${esc(I.t('polygon.hargaPerKg'))}</th>
+            <th class="num">${esc(I.t('booking.subtotal'))}</th>
+          </tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>`;
+  }
+
   function orderCard(o) {
-    const subtotal = U.formatRp(Number(o.jumlahPesananKg) * Number(o.hargaPerKg));
+    const multi = O.isMultiKloter(o);
+    const subtotal = U.formatRp(O.kloterOf(o).reduce((s, k) => s + O.num(k.subtotal ?? O.num(k.jumlahPesananKg) * O.num(k.hargaPerKg)), 0));
     return `
       <article class="dash-card">
         <div class="card-head">
@@ -52,14 +80,17 @@ document.addEventListener('DOMContentLoaded', () => {
           ${row('order.date', txt(I.formatDate(o.tanggalPemesanan)))}
           ${row('order.product', txt(o.tipeProduk))}
           ${row('polygon.varietas', txt(o.varietas))}
-          ${row('booking.process', txt(o.prosesPengolahan))}
+          ${row('booking.type', txt(window.AWBookingDraft.typeLabel(o.tipeBooking || 'Normal')))}
+          ${row('booking.kloterCount', txt(U.formatNumber(O.kloterOf(o).length, 0)))}
+          ${row('booking.process', txt(O.processLabel(o)))}
           ${row('checkout.polygon', txt([o.namaPolygon, o.idPolygon].filter(Boolean).join(' · ')))}
           ${row('order.qtyKg', txt(U.formatNumber(o.jumlahPesananKg)))}
-          ${row('polygon.hargaPerKg', txt(U.formatRp(o.hargaPerKg)))}
+          ${multi ? '' : row('polygon.hargaPerKg', txt(U.formatRp(o.hargaPerKg)))}
           ${row('booking.subtotal', txt(subtotal))}
           ${row('order.tax', txt(U.formatRp(o.biayaPajak || 0)))}
           ${row('order.shipping', txt(U.formatRp(o.biayaPengiriman || 0)))}
         </dl>
+        ${multi ? kloterTable(o) : ''}
         <div class="total-band"><span>${esc(I.t('order.total'))}</span><strong>${esc(U.formatRp(o.totalHarga))}</strong></div>
         <h3 class="sub-title">${esc(I.t('invoice.buyer'))}</h3>
         <dl class="kv">
@@ -158,7 +189,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const pt = tr.petani;
     const params = {
       varietas: o.varietas || (p && p.varietas) || '—',
-      proses: o.prosesPengolahan || '—',
+      proses: O.processLabel(o) || '—',
       kebun: (p && (p.namaKml || p.idPolygon)) || o.namaPolygon || o.idPolygon || '—',
       petani: (pt && pt.nama) || (p && p.petani) || '',
       mdpl: (p && p.mdpl) || (pt && pt.mdpl) || '',
@@ -197,7 +228,7 @@ document.addEventListener('DOMContentLoaded', () => {
           <p class="form-hint">${esc(I.t('trace.lede'))}</p>
           ${polygonSection(tr.polygon)}
           ${petaniSection(tr.petani)}
-          ${prosesSection(tr.prosesPengolahan, o.prosesPengolahan)}
+          ${prosesSection(tr.prosesPengolahan, O.processLabel(o))}
         </article>
       </div>`;
     root.querySelector('[data-print]').addEventListener('click', () => window.print());

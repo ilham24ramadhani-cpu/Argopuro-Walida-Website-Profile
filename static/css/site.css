@@ -2869,6 +2869,177 @@ tr:last-child td {
   font-weight: 500;
 }
 
+/* ——— Booking: tipe pemesanan, jumlah kloter, detail per kloter ——— */
+.booking-step {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--white);
+  padding: 16px 18px 18px;
+  margin: 0;
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+
+.booking-step-head {
+  float: left;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 800;
+  font-size: 15px;
+  color: var(--teal-dark);
+  margin: 0;
+  padding: 0;
+}
+
+.booking-step-head + * {
+  clear: both;
+}
+
+.booking-step-head span {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 12px;
+  background: var(--teal);
+  color: var(--white);
+  flex: none;
+}
+
+.choice-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 10px;
+}
+
+.booking-form label.choice-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 12px 14px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.booking-form label.choice-card:has(input:checked) {
+  border-color: var(--teal);
+  background: var(--teal-soft);
+}
+
+.choice-card input {
+  margin-top: 3px;
+  accent-color: var(--teal);
+}
+
+.choice-card-body {
+  display: grid;
+  gap: 2px;
+}
+
+.choice-card-body small {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.kloter-count {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.kloter-count-btn {
+  min-width: 44px;
+  height: 40px;
+  padding: 0 12px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: var(--white);
+  color: var(--ink);
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.kloter-count-btn:hover {
+  border-color: var(--teal);
+}
+
+.kloter-count-btn.active {
+  background: var(--teal);
+  border-color: var(--teal);
+  color: var(--white);
+}
+
+.kloter-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.kloter-card {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 12px 14px;
+  background: var(--paper);
+}
+
+.kloter-card-title {
+  grid-column: 1 / -1;
+  margin: 0;
+  font-weight: 800;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--teal);
+}
+
+.kloter-total {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px 10px;
+  background: var(--teal-soft);
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 14px;
+}
+
+.kloter-total span {
+  font-weight: 700;
+  color: var(--teal-dark);
+}
+
+.kloter-total small {
+  color: var(--muted);
+}
+
+.kloter-table {
+  margin-top: 16px;
+}
+
+.kloter-table .num {
+  text-align: right;
+}
+
+.kloter-table tfoot td {
+  border-top: 1px solid var(--line);
+  border-bottom: 0;
+  font-weight: 700;
+}
+
+@media (max-width: 600px) {
+  .kloter-card {
+    grid-template-columns: 1fr;
+  }
+}
+
 .password-field {
   position: relative;
   display: block;

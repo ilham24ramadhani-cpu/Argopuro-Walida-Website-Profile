@@ -20,9 +20,19 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!raw || !(raw.idPembelian || raw.pembeli || raw.pesanan)) return null;
     const pembeli = raw.pembeli || {};
     const p = raw.pesanan || {};
-    const berat = num(p.jumlahPesananKg);
-    const harga = num(p.hargaPerKg);
-    const subtotal = Math.round(berat * harga * 100) / 100;
+    const rows = Array.isArray(p.kloter) && p.kloter.length ? p.kloter : [p];
+    const kloter = rows.map((k, i) => {
+      const berat = num(k.jumlahPesananKg);
+      const harga = num(k.hargaPerKg);
+      return {
+        kloter: k.kloter || i + 1,
+        prosesPengolahan: k.prosesPengolahan || '—',
+        jumlahPesananKg: berat,
+        hargaPerKg: harga,
+        subtotal: k.subtotal != null && k.subtotal !== '' ? num(k.subtotal) : Math.round(berat * harga * 100) / 100,
+      };
+    });
+    const subtotal = kloter.reduce((s, k) => s + k.subtotal, 0);
     return {
       idPembelian: raw.idPembelian || '—',
       tanggalPemesanan: raw.tanggalPemesanan || '',
@@ -33,9 +43,9 @@ document.addEventListener('DOMContentLoaded', () => {
       pesanan: {
         idPolygon: p.idPolygon || '',
         petakLabel: [p.namaPolygon, p.idPolygon].filter((x) => x && String(x).trim()).join(' · ') || '—',
-        prosesPengolahan: p.prosesPengolahan || '—',
-        jumlahPesananKg: berat,
-        hargaPerKg: harga,
+        tipeBooking: p.tipeBooking || 'Normal',
+        kloter,
+        jumlahPesananKg: kloter.reduce((s, k) => s + k.jumlahPesananKg, 0),
         subtotal,
         totalHarga: p.totalHarga !== undefined && p.totalHarga !== null && p.totalHarga !== '' ? num(p.totalHarga) : subtotal,
         tipeProduk: p.tipeProduk || 'Green Beans',
@@ -89,6 +99,8 @@ document.addEventListener('DOMContentLoaded', () => {
             <div><span>${esc(I.t('order.statusOrder'))}</span>${U.badgeHtml('order', inv.statusPemesanan)}</div>
             <div><span>${esc(I.t('order.date'))}</span><strong>${esc(I.formatDate(inv.tanggalPemesanan))}</strong></div>
             <div><span>${esc(I.t('order.statusPayment'))}</span>${U.badgeHtml('payment', inv.statusPembayaran)}</div>
+            <div><span>${esc(I.t('booking.type'))}</span><strong>${esc(window.AWBookingDraft.typeLabel(p.tipeBooking))}</strong></div>
+            <div><span>${esc(I.t('booking.kloterCount'))}</span><strong>${esc(U.formatNumber(p.kloter.length, 0))}</strong></div>
           </div>
         </section>
         <section class="inv-section">
@@ -104,6 +116,7 @@ document.addEventListener('DOMContentLoaded', () => {
           <div class="inv-table-wrap">
             <table class="inv-table">
               <thead><tr>
+                <th>${esc(I.t('booking.kloter'))}</th>
                 <th>${esc(I.t('order.product'))}</th>
                 <th>${esc(I.t('polygon.varietas'))}</th>
                 <th>${esc(I.t('booking.process'))}</th>
@@ -112,18 +125,25 @@ document.addEventListener('DOMContentLoaded', () => {
                 <th>${esc(I.t('polygon.hargaPerKg'))}</th>
                 <th>${esc(I.t('booking.subtotal'))}</th>
               </tr></thead>
-              <tbody><tr>
+              <tbody>${p.kloter
+                .map(
+                  (k) => `<tr>
+                <td>${esc(k.kloter)}</td>
                 <td>${esc(p.tipeProduk)}</td>
                 <td>${esc(p.varietas)}</td>
-                <td>${esc(p.prosesPengolahan)}</td>
+                <td>${esc(k.prosesPengolahan)}</td>
                 <td>${esc(p.petakLabel)}</td>
-                <td class="num">${esc(U.formatNumber(p.jumlahPesananKg, 2))}</td>
-                <td class="num">${esc(fmt(p.hargaPerKg))}</td>
-                <td class="num">${esc(fmt(p.subtotal))}</td>
-              </tr></tbody>
+                <td class="num">${esc(U.formatNumber(k.jumlahPesananKg, 2))}</td>
+                <td class="num">${esc(fmt(k.hargaPerKg))}</td>
+                <td class="num">${esc(fmt(k.subtotal))}</td>
+              </tr>`,
+                )
+                .join('')}</tbody>
             </table>
           </div>
           <div class="inv-summary">
+            <div><span>${esc(I.t('booking.totalQty'))}</span><strong>${esc(U.formatKg(p.jumlahPesananKg))}</strong></div>
+            <div><span>${esc(I.t('booking.subtotal'))}</span><strong>${esc(fmt(p.subtotal))}</strong></div>
             ${
               p.biayaPajak > 0 || p.biayaPengiriman > 0
                 ? `<div><span>${esc(I.t('order.tax'))}</span><strong>${esc(fmt(p.biayaPajak))}</strong></div>

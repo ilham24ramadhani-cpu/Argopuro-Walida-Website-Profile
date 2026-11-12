@@ -22,5 +22,22 @@
     return { count: (orders || []).length, totalKg, totalHarga, byOrder, byPayment };
   }
 
-  global.AWOrders = { ORDER_STATUSES, PAYMENT_STATUSES, summarize, num };
+  /* Baris kloter pesanan; pesanan lama tanpa kloter[] = satu baris dari root */
+  function kloterOf(o) {
+    if (Array.isArray(o && o.kloter) && o.kloter.length) return o.kloter;
+    return o ? [{ kloter: 1, prosesPengolahan: o.prosesPengolahan, jumlahPesananKg: o.jumlahPesananKg, hargaPerKg: o.hargaPerKg }] : [];
+  }
+
+  function processLabel(o) {
+    return kloterOf(o)
+      .map((k) => k.prosesPengolahan)
+      .filter(Boolean)
+      .join(', ');
+  }
+
+  function isMultiKloter(o) {
+    return kloterOf(o).length > 1;
+  }
+
+  global.AWOrders = { ORDER_STATUSES, PAYMENT_STATUSES, summarize, num, kloterOf, processLabel, isMultiKloter };
 })(window);

@@ -39,7 +39,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (f.dari && (!d || d < f.dari)) return false;
       if (f.sampai && (!d || d > f.sampai)) return false;
       if (q) {
-        const hay = [o.idPembelian, o.namaPolygon, o.idPolygon, o.prosesPengolahan, o.varietas].join(' ').toLowerCase();
+        const hay = [o.idPembelian, o.namaPolygon, o.idPolygon, O.processLabel(o), o.varietas].join(' ').toLowerCase();
         if (!hay.includes(q)) return false;
       }
       return true;
@@ -97,10 +97,10 @@ document.addEventListener('DOMContentLoaded', () => {
           <td><a href="${esc(detailUrl(o))}" class="order-id">${esc(o.idPembelian)}</a></td>
           <td>${esc(I.formatDate(o.tanggalPemesanan, { month: 'short' }))}</td>
           <td>${esc(petakText(o))}</td>
-          <td>${esc(o.prosesPengolahan || '—')}</td>
+          <td>${esc(O.processLabel(o) || '—')}</td>
           <td>${esc(o.varietas || '—')}</td>
           <td class="num">${esc(U.formatNumber(o.jumlahPesananKg))}</td>
-          <td class="num">${esc(U.formatRp(o.hargaPerKg))}</td>
+          <td class="num">${esc(O.isMultiKloter(o) ? I.t('order.perKloter') : U.formatRp(o.hargaPerKg))}</td>
           <td class="num"><strong>${esc(U.formatRp(o.totalHarga))}</strong></td>
           <td>${U.badgeHtml('order', o.statusPemesanan)}</td>
           <td>${U.badgeHtml('payment', o.statusPembayaran)}</td>
@@ -116,9 +116,13 @@ document.addEventListener('DOMContentLoaded', () => {
             <span>${esc(I.formatDate(o.tanggalPemesanan, { month: 'short' }))}</span>
           </div>
           <p>${esc(petakText(o))}</p>
-          <p class="order-card-meta">${esc([o.prosesPengolahan, o.varietas].filter(Boolean).join(' · '))}</p>
+          <p class="order-card-meta">${esc([O.processLabel(o), o.varietas].filter(Boolean).join(' · '))}</p>
           <div class="order-card-foot">
-            <span>${esc(U.formatKg(o.jumlahPesananKg))} × ${esc(U.formatRp(o.hargaPerKg))}</span>
+            <span>${esc(
+              O.isMultiKloter(o)
+                ? `${U.formatKg(o.jumlahPesananKg)} · ${I.t('booking.kloterTotal', { n: O.kloterOf(o).length })}`
+                : `${U.formatKg(o.jumlahPesananKg)} × ${U.formatRp(o.hargaPerKg)}`,
+            )}</span>
             <strong>${esc(U.formatRp(o.totalHarga))}</strong>
           </div>
           <div class="order-card-badges">${U.badgeHtml('order', o.statusPemesanan)} ${U.badgeHtml('payment', o.statusPembayaran)}</div>
@@ -198,7 +202,7 @@ document.addEventListener('DOMContentLoaded', () => {
       ['order.date', (o) => ymd(o.tanggalPemesanan)],
       ['polygon.idPolygon', (o) => o.idPolygon || ''],
       ['order.polygonName', (o) => o.namaPolygon || ''],
-      ['booking.process', (o) => o.prosesPengolahan || ''],
+      ['booking.process', (o) => O.processLabel(o)],
       ['polygon.varietas', (o) => o.varietas || ''],
       ['order.product', (o) => o.tipeProduk || ''],
       ['order.qtyKg', n('jumlahPesananKg')],
