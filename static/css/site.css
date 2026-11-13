@@ -833,21 +833,35 @@ html.map-fullsize-open body {
 }
 
 .detail-panel header {
-  padding: 14px 16px 10px;
+  padding: 14px 48px 10px 16px;
   background: var(--teal);
   color: white;
   position: sticky;
   top: 0;
+  z-index: 2;
 }
 
 .detail-close {
-  float: right;
+  position: absolute;
+  z-index: 1;
+  top: 8px;
+  right: 8px;
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
   border: 0;
+  border-radius: 8px;
   background: transparent;
   color: white;
-  font-size: 18px;
+  font-size: 22px;
   cursor: pointer;
   line-height: 1;
+}
+
+.detail-close:hover,
+.detail-close:focus-visible {
+  background: rgba(255, 255, 255, 0.18);
 }
 
 .detail-code {
