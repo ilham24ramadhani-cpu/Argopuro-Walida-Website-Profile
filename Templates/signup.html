@@ -25,6 +25,7 @@
       <input type="text" name="username" autocomplete="username" autocapitalize="none" spellcheck="false" pattern="[A-Za-z0-9_.]{3,30}" maxlength="30" required />
       <small class="form-hint" data-i18n="auth.usernameHint">3–30 karakter: huruf, angka, titik, atau garis bawah.</small>
     </label>
+    {% include '_perusahaan_fields.html' %}
     <label>
       <span data-i18n="auth.password">Password</span>
       <span class="password-field">

@@ -320,6 +320,23 @@
     "errPhotoType": "Foto harus JPG, PNG, atau WEBP.",
     "errPhotoSize": "Ukuran foto maksimal 5 MB."
   },
+  "company": {
+    "type": "Data pembeli",
+    "typeCompany": "Perusahaan",
+    "typeCompanyHint": "PT, CV, koperasi, atau badan usaha",
+    "typePersonal": "Perseorangan",
+    "typePersonalHint": "Membeli atas nama pribadi",
+    "nameCompany": "Nama perusahaan",
+    "namePersonal": "Nama perseorangan",
+    "placeholderCompany": "Contoh: PT Kopi Nusantara",
+    "placeholderPersonal": "Nama lengkap sesuai identitas",
+    "publicHint": "Nama ini ditampilkan sebagai pembeli pada peta kebun (tanpa jumlah dan produk yang dibeli).",
+    "errType": "Pilih tipe pembeli: Perusahaan atau Perseorangan.",
+    "errNameCompany": "Nama perusahaan wajib diisi.",
+    "errNamePersonal": "Nama perseorangan wajib diisi.",
+    "missing": "Lengkapi nama perusahaan / perseorangan di profil sebelum booking.",
+    "editInProfile": "Ubah di profil"
+  },
   "dashboard": {
     "hello": "Halo,",
     "nav": {

@@ -66,14 +66,17 @@
     return rows.map(([k, v]) => `<div><dt>${esc(I.t(k))}</dt><dd>${v}</dd></div>`).join('');
   }
 
+  /* Hanya nama perusahaan pembeli (unik); tonase & produk tidak ditampilkan */
   function pembeliHtml(item) {
     const list = Array.isArray(item.pembeliBooking) ? item.pembeliBooking : [];
-    if (!list.length) return '';
-    return `<div class="pembeli-block"><h4>${esc(I.t('polygon.buyers'))}</h4><ul>${list
-      .map(
-        (p) =>
-          `<li><strong>${esc(p.namaPembeli || '—')}</strong><span>${esc(p.prosesPengolahan || '—')}</span><span>${esc(U.formatKg(p.jumlahPesananKg))}</span></li>`,
-      )
+    const names = new Map();
+    list.forEach((p) => {
+      const nama = String((p && (p.namaPerusahaan || p.namaPembeli)) || '').trim();
+      if (nama && !names.has(nama.toLowerCase())) names.set(nama.toLowerCase(), nama);
+    });
+    if (!names.size) return '';
+    return `<div class="pembeli-block"><h4>${esc(I.t('polygon.buyers'))}</h4><ul>${[...names.values()]
+      .map((nama) => `<li><strong>${esc(nama)}</strong></li>`)
       .join('')}</ul></div>`;
   }
 

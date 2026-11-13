@@ -3,6 +3,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const U = window.WalidaUtils;
   const I = window.AWI18n;
   const P = window.AWPhotoInput;
+  const C = window.AWPerusahaanInput;
   const esc = U.escapeHtml;
   const cardEl = document.getElementById('profile-card');
   const statsEl = document.getElementById('profile-stats');
@@ -24,7 +25,9 @@ document.addEventListener('DOMContentLoaded', () => {
         <dl class="profile-dl">
           <div><dt>${esc(I.t('dashboard.profile.customerId'))}</dt><dd>${esc(customer.idCustomer || '—')}</dd></div>
           <div><dt>${esc(I.t('dashboard.profile.joined'))}</dt><dd>${esc(I.formatDate(customer.createdAt))}</dd></div>
+          <div><dt>${esc(I.t(customer.tipePembeli === 'Perseorangan' ? 'company.namePersonal' : 'company.nameCompany'))}</dt><dd>${esc(customer.namaPerusahaan || '—')}</dd></div>
         </dl>
+        ${customer.namaPerusahaan ? '' : `<p class="status-box error">${esc(I.t('company.missing'))}</p>`}
       </div>`;
   }
 
@@ -51,6 +54,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!customer) return;
     profileForm.nama.value = customer.nama || '';
     profileForm.username.value = customer.username || '';
+    C.fill(profileForm, customer);
     const current = preview().querySelector('img');
     if (!current || !current.src.startsWith('blob:')) {
       preview().outerHTML = U.avatarHtml(window.AWAuth.fotoUrl(customer), customer.nama, 'user-avatar user-avatar--lg');
@@ -92,6 +96,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   P.bindPasswordToggles(document);
+  C.bind(profileForm);
 
   const photoInput = profileForm.foto;
   P.bindPhoto(photoInput, preview, (key) => setMsg(profileForm, key ? { type: 'error', key } : null));
@@ -102,9 +107,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const username = profileForm.username.value.trim().toLowerCase();
     if (!nama) return setMsg(profileForm, { type: 'error', key: 'auth.errName' });
     if (!P.USERNAME_RE.test(username)) return setMsg(profileForm, { type: 'error', key: 'auth.errUsername' });
+    const companyKey = C.validate(profileForm);
+    if (companyKey) return setMsg(profileForm, { type: 'error', key: companyKey });
     const fd = new FormData();
     fd.append('nama', nama);
     fd.append('username', username);
+    C.append(profileForm, fd);
     const file = photoInput.files && photoInput.files[0];
     if (file) fd.append('foto', file);
     if (await save(profileForm, fd, 'dashboard.profile.saved')) {

@@ -1,0 +1,24 @@
+<fieldset class="perusahaan-fields" data-perusahaan>
+  <legend><span data-i18n="company.type">Data pembeli</span> <span class="req">*</span></legend>
+  <div class="choice-grid choice-grid--2">
+    <label class="choice-card">
+      <input type="radio" name="tipePembeli" value="Perusahaan" required />
+      <span class="choice-card-body">
+        <strong data-i18n="company.typeCompany">Perusahaan</strong>
+        <small data-i18n="company.typeCompanyHint">PT, CV, koperasi, atau badan usaha</small>
+      </span>
+    </label>
+    <label class="choice-card">
+      <input type="radio" name="tipePembeli" value="Perseorangan" required />
+      <span class="choice-card-body">
+        <strong data-i18n="company.typePersonal">Perseorangan</strong>
+        <small data-i18n="company.typePersonalHint">Membeli atas nama pribadi</small>
+      </span>
+    </label>
+  </div>
+  <label>
+    <span><span data-perusahaan-label data-i18n="company.nameCompany">Nama perusahaan</span> <span class="req">*</span></span>
+    <input type="text" name="namaPerusahaan" maxlength="120" autocomplete="organization" required data-i18n-placeholder="company.placeholderCompany" placeholder="Contoh: PT Kopi Nusantara" />
+    <small class="form-hint" data-i18n="company.publicHint">Nama ini ditampilkan sebagai pembeli pada peta kebun (tanpa jumlah dan produk yang dibeli).</small>
+  </label>
+</fieldset>

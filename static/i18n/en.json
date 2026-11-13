@@ -320,6 +320,23 @@
     "errPhotoType": "Photo must be JPG, PNG, or WEBP.",
     "errPhotoSize": "Photo size must be 5 MB or less."
   },
+  "company": {
+    "type": "Buyer details",
+    "typeCompany": "Company",
+    "typeCompanyHint": "PT, CV, cooperative, or other business entity",
+    "typePersonal": "Individual",
+    "typePersonalHint": "Buying under your own name",
+    "nameCompany": "Company name",
+    "namePersonal": "Individual name",
+    "placeholderCompany": "e.g. PT Kopi Nusantara",
+    "placeholderPersonal": "Full name as on your ID",
+    "publicHint": "This name is shown as the buyer on the farm map (without quantity or products purchased).",
+    "errType": "Choose a buyer type: Company or Individual.",
+    "errNameCompany": "Company name is required.",
+    "errNamePersonal": "Individual name is required.",
+    "missing": "Please complete your company / individual name in your profile before booking.",
+    "editInProfile": "Edit in profile"
+  },
   "dashboard": {
     "hello": "Hello,",
     "nav": {

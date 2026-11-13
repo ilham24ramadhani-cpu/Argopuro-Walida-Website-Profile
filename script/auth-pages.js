@@ -52,6 +52,49 @@
 
   global.AWPhotoInput = { photoError, bindPhoto, bindPasswordToggles, USERNAME_RE };
 
+  /* Field Data pembeli (_perusahaan_fields.html): tipePembeli Perusahaan/Perseorangan + namaPerusahaan, wajib */
+  const Perusahaan = {
+    tipe(form) {
+      const checked = form.querySelector('input[name="tipePembeli"]:checked');
+      return checked ? checked.value : '';
+    },
+    syncLabel(form) {
+      const personal = Perusahaan.tipe(form) === 'Perseorangan';
+      form.querySelector('[data-perusahaan-label]').dataset.i18n = personal ? 'company.namePersonal' : 'company.nameCompany';
+      form.namaPerusahaan.dataset.i18nPlaceholder = personal ? 'company.placeholderPersonal' : 'company.placeholderCompany';
+      form.namaPerusahaan.autocomplete = personal ? 'name' : 'organization';
+      global.AWI18n.apply(form.querySelector('[data-perusahaan]'));
+    },
+    bind(form) {
+      form.querySelectorAll('input[name="tipePembeli"]').forEach((r) =>
+        r.addEventListener('change', () => Perusahaan.syncLabel(form)),
+      );
+      Perusahaan.syncLabel(form);
+    },
+    fill(form, customer) {
+      const tipe = (customer && customer.tipePembeli) || '';
+      form.querySelectorAll('input[name="tipePembeli"]').forEach((r) => {
+        r.checked = r.value === tipe;
+      });
+      form.namaPerusahaan.value = (customer && customer.namaPerusahaan) || '';
+      Perusahaan.syncLabel(form);
+    },
+    /* → key error i18n atau '' */
+    validate(form) {
+      const tipe = Perusahaan.tipe(form);
+      if (!tipe) return 'company.errType';
+      if (!form.namaPerusahaan.value.trim()) {
+        return tipe === 'Perseorangan' ? 'company.errNamePersonal' : 'company.errNameCompany';
+      }
+      return '';
+    },
+    append(form, fd) {
+      fd.append('tipePembeli', Perusahaan.tipe(form));
+      fd.append('namaPerusahaan', form.namaPerusahaan.value.trim().replace(/\s+/g, ' '));
+    },
+  };
+  global.AWPerusahaanInput = Perusahaan;
+
   document.addEventListener('DOMContentLoaded', () => {
     const form = document.querySelector('[data-auth-page]');
     if (!form) return;
@@ -94,6 +137,7 @@
         const fb = document.querySelector('#photo-preview .avatar-fallback');
         fb.textContent = global.WalidaUtils.initials(form.nama.value);
       });
+      Perusahaan.bind(form);
     }
 
     function validate() {
@@ -104,6 +148,8 @@
       }
       if (!form.nama.value.trim()) return { key: 'auth.errName' };
       if (!USERNAME_RE.test(username)) return { key: 'auth.errUsername' };
+      const companyKey = Perusahaan.validate(form);
+      if (companyKey) return { key: companyKey };
       if (form.password.value.length < 6) return { key: 'auth.errPasswordLength' };
       if (form.password.value !== form.password2.value) return { key: 'auth.errPasswordMatch' };
       const photoKey = photoError(form.foto.files && form.foto.files[0]);
@@ -124,6 +170,7 @@
           const fd = new FormData();
           fd.append('nama', form.nama.value.trim());
           fd.append('username', form.username.value.trim().toLowerCase());
+          Perusahaan.append(form, fd);
           fd.append('password', form.password.value);
           const file = form.foto.files && form.foto.files[0];
           if (file) fd.append('foto', file);

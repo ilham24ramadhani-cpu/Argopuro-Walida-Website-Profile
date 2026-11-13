@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const id = root.dataset.id;
   const draft = window.AWBookingDraft.read();
   const kloter = window.AWBookingDraft.kloter(draft);
-  const customer = window.AWAuth.getCustomer() || {};
+  let customer = window.AWAuth.getCustomer() || {};
   let formError = '';
   let formInfo = '';
   let submitting = false;
@@ -102,6 +102,16 @@ document.addEventListener('DOMContentLoaded', () => {
       <p class="form-hint">${esc(I.t('kontrak.rpHint'))}</p>`;
   }
 
+  /* Nama perusahaan diambil dari profil (wajib) — yang tampil di peta sebagai pembeli */
+  function companyHtml() {
+    const editLink = `<a href="/dashboard">${esc(I.t('company.editInProfile'))}</a>`;
+    if (!customer.namaPerusahaan) {
+      return `<p class="status-box error" role="alert">${esc(I.t('company.missing'))} ${editLink}</p>`;
+    }
+    const key = customer.tipePembeli === 'Perseorangan' ? 'company.namePersonal' : 'company.nameCompany';
+    return `<div class="info-grid"><div><span>${esc(I.t(key))}</span><strong>${esc(customer.namaPerusahaan)}</strong><small class="d-block text-muted">${editLink}</small></div></div>`;
+  }
+
   function render() {
     if (!draft || draft.idPolygon !== id || !kloter.length || (draft.tipeBooking === 'Kontrak' && !kontrak)) {
       root.innerHTML = `
@@ -139,6 +149,7 @@ document.addEventListener('DOMContentLoaded', () => {
       </section>
       <form class="booking-form" novalidate>
         <h2>${esc(I.t('checkout.buyer'))}</h2>
+        ${companyHtml()}
         ${field('namaPembeli', 'checkout.name')}
         ${field('kontakPembeli', 'checkout.contact')}
         ${field('alamatPembeli', 'checkout.address', 'textarea')}
@@ -188,6 +199,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     if (!window.AWAuth.isLoggedIn()) {
       saveAndLogin(I.t('checkout.sessionExpired'));
+      return;
+    }
+    if (!customer.namaPerusahaan) {
+      formError = I.t('company.missing');
+      render();
       return;
     }
     const body = {
@@ -242,4 +258,17 @@ document.addEventListener('DOMContentLoaded', () => {
     render();
   });
   render();
+
+  if (window.AWAuth.isLoggedIn()) {
+    window.AWApi.request('/api/public/customer/me', { auth: true, handle401: false })
+      .then((res) => {
+        const fresh = (res && res.customer) || res;
+        if (!fresh || submitting) return;
+        customer = fresh;
+        window.AWAuth.setSession({ customer });
+        readForm();
+        render();
+      })
+      .catch(() => {});
+  }
 });

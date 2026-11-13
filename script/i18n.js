@@ -10,6 +10,10 @@
     [/username sudah (dipakai|digunakan|terdaftar)/i, 'errors.usernameTaken'],
     [/username atau password salah/i, 'errors.badCredentials'],
     [/password lama salah/i, 'errors.oldPasswordWrong'],
+    [/lengkapi nama perusahaan/i, 'company.missing'],
+    [/nama perusahaan wajib/i, 'company.errNameCompany'],
+    [/nama perseorangan wajib/i, 'company.errNamePersonal'],
+    [/tipe pembeli harus/i, 'company.errType'],
     [/stok.*(tidak cukup|melebihi|habis)|melebihi.*stok/i, 'errors.stockInsufficient'],
     [/token.*(tidak valid|kedaluwarsa|expired|invalid)|sesi.*berakhir|unauthori[sz]ed|wajib login|login diperlukan/i, 'errors.tokenInvalid'],
   ];

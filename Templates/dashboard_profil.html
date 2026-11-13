@@ -30,6 +30,7 @@
       <input type="text" name="username" autocapitalize="none" spellcheck="false" maxlength="30" required />
       <small class="form-hint" data-i18n="auth.usernameHint">3–30 karakter: huruf, angka, titik, atau garis bawah.</small>
     </label>
+    {% include '_perusahaan_fields.html' %}
     <p class="form-msg" data-msg role="status" hidden></p>
     <button type="submit" class="btn" data-i18n="common.save">Simpan</button>
   </form>
