@@ -8,6 +8,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const draft = window.AWBookingDraft.read();
   const kloter = window.AWBookingDraft.kloter(draft);
   let customer = window.AWAuth.getCustomer() || {};
+  let polygon = null;
+  let priceState = 'loading';
   let formError = '';
   let formInfo = '';
   let submitting = false;
@@ -34,27 +36,73 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  function normName(value) {
+    return String(value || '').trim().toLowerCase();
+  }
+
+  /* Harga tiap proses dari petak. Petak lama tanpa harga per proses memakai harga petak. */
+  function hargaOf(name) {
+    if (priceState !== 'ready' || !polygon) return null;
+    const list = Array.isArray(polygon.prosesPengolahan) ? polygon.prosesPengolahan : [];
+    const key = normName(name);
+    const found = list.find((p) => normName(typeof p === 'string' ? p : p && p.prosesPengolahan) === key);
+    if (found && typeof found === 'object' && found.hargaPerKg != null && found.hargaPerKg !== '') {
+      const n = Number(found.hargaPerKg);
+      if (n > 0) return n;
+    }
+    const priced = list.some((p) => p && typeof p === 'object' && Number(p.hargaPerKg) > 0);
+    if (!priced) {
+      const n = Number(polygon.hargaPerKg);
+      if (n > 0) return n;
+    }
+    return null;
+  }
+
+  function lineTotal(kg, harga) {
+    if (harga == null) return null;
+    const qty = Number(kg);
+    if (!(qty > 0)) return null;
+    return Math.round(qty * harga * 100) / 100;
+  }
+
+  function money(value) {
+    if (priceState === 'loading') return '…';
+    if (value == null || Number.isNaN(Number(value))) return '—';
+    return U.formatRp(value);
+  }
+
   function kloterTableHtml() {
-    const rows = kloter
+    const lines = kloter.map((k) => {
+      const harga = hargaOf(k.prosesPengolahan);
+      return { k, harga, sub: lineTotal(k.jumlahPesananKg, harga) };
+    });
+    const grand = lines.every((l) => l.sub != null) ? lines.reduce((s, l) => s + l.sub, 0) : null;
+    const rows = lines
       .map(
-        (k, i) => `<tr>
+        (l, i) => `<tr>
           <td>${esc(I.t('booking.kloterN', { n: i + 1 }))}</td>
-          <td>${esc(k.prosesPengolahan)}</td>
-          <td class="num">${esc(U.formatKg(k.jumlahPesananKg))}</td>
+          <td>${esc(l.k.prosesPengolahan)}</td>
+          <td class="num">${esc(U.formatKg(l.k.jumlahPesananKg))}</td>
+          <td class="num">${esc(money(l.harga))}</td>
+          <td class="num">${esc(money(l.sub))}</td>
         </tr>`,
       )
       .join('');
-    return `<div class="table-wrap kloter-table">
+    return `<div class="table-wrap kloter-table kloter-table--priced">
         <table>
           <thead><tr>
             <th>${esc(I.t('booking.kloter'))}</th>
             <th>${esc(I.t('booking.process'))}</th>
             <th class="num">${esc(I.t('checkout.qty'))}</th>
+            <th class="num">${esc(I.t('polygon.hargaPerKg'))}</th>
+            <th class="num">${esc(I.t('checkout.lineTotal'))}</th>
           </tr></thead>
           <tbody>${rows}</tbody>
           <tfoot><tr>
             <td colspan="2">${esc(I.t('booking.totalQty'))}</td>
             <td class="num"><strong>${esc(U.formatKg(draft.jumlahPesananKg))}</strong></td>
+            <td></td>
+            <td class="num"><strong>${esc(money(grand))}</strong></td>
           </tr></tfoot>
         </table>
       </div>`;
@@ -253,11 +301,31 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  function loadPrices() {
+    if (!draft || draft.idPolygon !== id || !kloter.length) {
+      priceState = 'ready';
+      render();
+      return;
+    }
+    window.AWApi.polygon(id)
+      .then((item) => {
+        polygon = item;
+        priceState = 'ready';
+      })
+      .catch(() => {
+        priceState = 'error';
+      })
+      .finally(() => {
+        readForm();
+        render();
+      });
+  }
+
   document.addEventListener('aw:langchange', () => {
     readForm();
     render();
   });
-  render();
+  loadPrices();
 
   if (window.AWAuth.isLoggedIn()) {
     window.AWApi.request('/api/public/customer/me', { auth: true, handle401: false })
@@ -266,6 +334,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!fresh || submitting) return;
         customer = fresh;
         window.AWAuth.setSession({ customer });
+        if (priceState === 'loading') return;
         readForm();
         render();
       })

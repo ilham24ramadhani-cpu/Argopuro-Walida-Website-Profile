@@ -221,6 +221,7 @@
     "summary": "Ringkasan pesanan",
     "polygon": "Petak",
     "qty": "Jumlah",
+    "lineTotal": "Total harga",
     "payment": "Mekanisme pembayaran",
     "buyer": "Data pembeli",
     "name": "Nama pembeli",

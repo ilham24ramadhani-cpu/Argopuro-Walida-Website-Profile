@@ -221,6 +221,7 @@
     "summary": "Order summary",
     "polygon": "Plot",
     "qty": "Quantity",
+    "lineTotal": "Total price",
     "payment": "Payment method",
     "buyer": "Buyer details",
     "name": "Buyer name",

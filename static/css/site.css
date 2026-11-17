@@ -3067,6 +3067,12 @@ tr:last-child td {
 
 .kloter-table .num {
   text-align: right;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.kloter-table--priced table {
+  min-width: 560px;
 }
 
 .kloter-table tfoot td {
