@@ -39,7 +39,48 @@ document.addEventListener('DOMContentLoaded', () => {
       .join('')}</ol>`;
   }
 
+  function moneyOrDash(value) {
+    return value == null ? '—' : U.formatRp(value);
+  }
+
+  function asliCell(k) {
+    const n = U.finiteNumber(k.hargaPerKgAsli);
+    if (n == null) return '—';
+    return `<s class="price-was">${esc(U.formatRp(n))}</s>`;
+  }
+
+  function diskonCell(k) {
+    const n = U.finiteNumber(k.diskonPerKg);
+    if (n == null || n <= 0) return '—';
+    return `<span class="price-off">− ${esc(U.formatRp(n))}</span>`;
+  }
+
+  function subtotalCell(k) {
+    const n = U.lineSubtotal(k);
+    return esc(n == null ? '—' : U.formatRp(n));
+  }
+
   function kloterTable(o) {
+    if (U.hasTierDiscount(o)) {
+      const lines = O.kloterOf(o)
+        .map(
+          (k, i) => `<section class="tier-line">
+          <div class="tier-line-head">
+            <strong>${esc(I.t('booking.kloterN', { n: k.kloter || i + 1 }))}</strong>
+            <span>${txt(k.prosesPengolahan)}</span>
+            <span>${esc(U.formatKg(k.jumlahPesananKg))}</span>
+          </div>
+          <dl class="kv">
+            <div><dt>${esc(I.t('tier.lineOriginal'))}</dt><dd>${asliCell(k)}</dd></div>
+            <div><dt>${esc(I.t('tier.lineDiscount'))}</dt><dd>${diskonCell(k)}</dd></div>
+            <div><dt>${esc(I.t('tier.lineAfter'))}</dt><dd>${esc(moneyOrDash(U.finiteNumber(k.hargaPerKg)))}</dd></div>
+            <div><dt>${esc(I.t('booking.subtotal'))}</dt><dd>${subtotalCell(k)}</dd></div>
+          </dl>
+        </section>`,
+        )
+        .join('');
+      return `<div class="tier-lines">${lines}</div>`;
+    }
     const rows = O.kloterOf(o)
       .map(
         (k, i) => `<tr>
@@ -47,7 +88,7 @@ document.addEventListener('DOMContentLoaded', () => {
           <td>${txt(k.prosesPengolahan)}</td>
           <td class="num">${esc(U.formatNumber(k.jumlahPesananKg))}</td>
           <td class="num">${esc(U.formatRp(k.hargaPerKg))}</td>
-          <td class="num">${esc(U.formatRp(k.subtotal ?? O.num(k.jumlahPesananKg) * O.num(k.hargaPerKg)))}</td>
+          <td class="num">${subtotalCell(k)}</td>
         </tr>`,
       )
       .join('');
@@ -63,6 +104,21 @@ document.addEventListener('DOMContentLoaded', () => {
           <tbody>${rows}</tbody>
         </table>
       </div>`;
+  }
+
+  function tierRows(o) {
+    if (!U.hasTierDiscount(o)) return '';
+    const asli = U.finiteNumber(o.hargaPerKgAsli);
+    const asliHtml = asli == null ? '—' : `<s class="price-was">${esc(U.formatRp(asli))}</s>`;
+    return `
+      ${row('tier.name', txt(U.tierTitle(o)))}
+      <div><dt>${esc(I.t('tier.originalPerKg'))}</dt><dd>${asliHtml}</dd></div>
+      <div><dt>${esc(I.t('tier.discountPerKg'))}</dt><dd class="price-off">− ${esc(U.formatRp(o.diskonTierPerKg))}</dd></div>
+      ${row('tier.afterPerKg', txt(U.formatRp(o.hargaPerKg)))}`;
+  }
+
+  function goodsSubtotal(o) {
+    return O.kloterOf(o).reduce((s, k) => s + (U.lineSubtotal(k) || 0), 0);
   }
 
   function kontrakOf(o) {
@@ -100,7 +156,8 @@ document.addEventListener('DOMContentLoaded', () => {
   function orderCard(o) {
     const multi = O.isMultiKloter(o);
     const kontrak = kontrakOf(o);
-    const subtotal = U.formatRp(O.kloterOf(o).reduce((s, k) => s + O.num(k.subtotal ?? O.num(k.jumlahPesananKg) * O.num(k.hargaPerKg)), 0));
+    const tier = U.hasTierDiscount(o);
+    const subtotal = U.formatRp(goodsSubtotal(o));
     return `
       <article class="dash-card">
         <div class="card-head">
@@ -125,7 +182,7 @@ document.addEventListener('DOMContentLoaded', () => {
           ${row('booking.process', txt(O.processLabel(o)))}
           ${row('checkout.polygon', txt([o.namaPolygon, o.idPolygon].filter(Boolean).join(' · ')))}
           ${row('order.qtyKg', txt(U.formatNumber(o.jumlahPesananKg)))}
-          ${multi ? '' : row('polygon.hargaPerKg', txt(U.formatRp(o.hargaPerKg)))}
+          ${tier ? tierRows(o) : multi ? '' : row('polygon.hargaPerKg', txt(U.formatRp(o.hargaPerKg)))}
           ${row('booking.subtotal', txt(subtotal))}
           ${row('order.tax', txt(U.formatRp(o.biayaPajak || 0)))}
           ${row('order.shipping', txt(U.formatRp(o.biayaPengiriman || 0)))}
@@ -239,6 +296,31 @@ document.addEventListener('DOMContentLoaded', () => {
     return I.t('trace.sentenceShort', params);
   }
 
+  /* Harga & tier dari objek pesanan. Field yang hanya ada di pesanan bersarang ikut dipakai, tanpa menimpa nilai yang sudah ada. */
+  function orderView(payload) {
+    const root = payload && typeof payload === 'object' ? payload : {};
+    const base = root.order && typeof root.order === 'object' ? { ...root.order } : {};
+    const sources = [base.pesanan, base.invoice && base.invoice.pesanan, root.pesanan, root.invoice && root.invoice.pesanan];
+    const keys = [
+      'jumlahPesananKg',
+      'hargaPerKg',
+      'hargaPerKgAsli',
+      'diskonTierPerKg',
+      'tierHarga',
+      'totalHarga',
+      'kloter',
+      'biayaPajak',
+      'biayaPengiriman',
+    ];
+    sources.forEach((src) => {
+      if (!src || typeof src !== 'object' || Array.isArray(src)) return;
+      keys.forEach((key) => {
+        if (base[key] === undefined && src[key] !== undefined) base[key] = src[key];
+      });
+    });
+    return base;
+  }
+
   function render() {
     if (map) holder.appendChild(mapPane);
     if (error || notFound) {
@@ -250,7 +332,7 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
     if (!data) return;
-    const o = data.order || {};
+    const o = orderView(data);
     const tr = data.traceability || {};
     root.innerHTML = `
       <div class="dash-title-row no-print">

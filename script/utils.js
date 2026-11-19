@@ -142,6 +142,46 @@
     return I().formatCurrency(value);
   }
 
+  function finiteNumber(value) {
+    if (value === null || value === undefined || value === '') return null;
+    const n = Number(value);
+    return Number.isFinite(n) ? n : null;
+  }
+
+  /* Blok diskon hanya jika API mengirim tier dan potongan per kg > 0. */
+  function hasTierDiscount(order) {
+    const tier = order && order.tierHarga;
+    if (!tier || typeof tier !== 'object' || Array.isArray(tier)) return false;
+    const cut = finiteNumber(order.diskonTierPerKg);
+    return cut != null && cut > 0;
+  }
+
+  function tierTitle(order) {
+    const tier = (order && order.tierHarga) || {};
+    const range = `${formatKg(tier.dariKg)} – ${formatKg(tier.sampaiKg)}`;
+    const label = String(tier.label || '').trim();
+    return label ? `${label} (${range})` : range;
+  }
+
+  function tierNote(order) {
+    const tier = (order && order.tierHarga) || {};
+    return I().t('tier.note', {
+      from: formatKg(tier.dariKg),
+      to: formatKg(tier.sampaiKg),
+      amount: formatRp(order && order.diskonTierPerKg),
+    });
+  }
+
+  /* Subtotal baris dari API. Jika field kosong: kg × harga setelah diskon, bukan harga asli. */
+  function lineSubtotal(row) {
+    if (!row || typeof row !== 'object') return null;
+    if (row.subtotal !== undefined && row.subtotal !== null && row.subtotal !== '') return finiteNumber(row.subtotal);
+    const kg = finiteNumber(row.jumlahPesananKg);
+    const harga = finiteNumber(row.hargaPerKg);
+    if (kg == null || harga == null) return null;
+    return Math.round(kg * harga * 100) / 100;
+  }
+
   function escapeHtml(str) {
     return String(str ?? '')
       .replace(/&/g, '&amp;')
@@ -191,6 +231,11 @@
     formatMdpl,
     formatHa,
     formatRp,
+    finiteNumber,
+    hasTierDiscount,
+    tierTitle,
+    tierNote,
+    lineSubtotal,
     escapeHtml,
     avatarHtml,
     badgeHtml,

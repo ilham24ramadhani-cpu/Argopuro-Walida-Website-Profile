@@ -253,6 +253,17 @@
     "footer": "Argopuro Walida — Invoice pemesanan. Terima kasih atas kepercayaan Anda.",
     "printed": "Dicetak"
   },
+  "tier": {
+    "name": "Tier",
+    "originalPerKg": "Harga asli / kg",
+    "discountPerKg": "Diskon tier / kg",
+    "afterPerKg": "Harga setelah diskon / kg",
+    "lineOriginal": "Harga asli / kg",
+    "lineDiscount": "Diskon / kg",
+    "lineAfter": "Setelah diskon / kg",
+    "invoiceDiscount": "Diskon {label}",
+    "note": "{from} – {to}, potongan {amount} / kg"
+  },
   "order": {
     "id": "ID pembelian",
     "date": "Tanggal",

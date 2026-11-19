@@ -254,6 +254,7 @@ document.addEventListener('DOMContentLoaded', () => {
       render();
       return;
     }
+    /* Harga per kg dan total ditentukan server, termasuk diskon tier. Jangan kirim hargaPerKg / totalHarga. */
     const body = {
       idPolygon: draft.idPolygon,
       tipeBooking: draft.tipeBooking || 'Normal',

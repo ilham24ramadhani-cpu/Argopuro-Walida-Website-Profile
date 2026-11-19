@@ -253,6 +253,17 @@
     "footer": "Argopuro Walida — Order invoice. Thank you for your trust.",
     "printed": "Printed"
   },
+  "tier": {
+    "name": "Tier",
+    "originalPerKg": "Original price / kg",
+    "discountPerKg": "Tier discount / kg",
+    "afterPerKg": "Price after discount / kg",
+    "lineOriginal": "Original price / kg",
+    "lineDiscount": "Discount / kg",
+    "lineAfter": "After discount / kg",
+    "invoiceDiscount": "Discount {label}",
+    "note": "{from} – {to}, discount {amount} / kg"
+  },
   "order": {
     "id": "Order ID",
     "date": "Date",

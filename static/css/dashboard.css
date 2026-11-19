@@ -471,6 +471,54 @@
   overflow-wrap: anywhere;
 }
 
+.tier-lines {
+  display: grid;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.tier-line {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.tier-line-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px 12px;
+  padding: 10px 14px;
+  background: var(--teal-soft);
+  font-size: 14px;
+}
+
+.tier-line-head strong {
+  color: var(--teal-dark);
+}
+
+.tier-line-head span:last-child {
+  margin-left: auto;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.tier-line .kv > div {
+  align-items: center;
+  padding-left: 14px;
+  padding-right: 14px;
+}
+
+.tier-line .kv dt {
+  flex: 1 1 auto;
+}
+
+.tier-line .kv dd {
+  flex: none;
+  white-space: nowrap;
+  overflow-wrap: normal;
+}
+
 .total-band {
   display: flex;
   justify-content: space-between;

@@ -14,47 +14,89 @@ document.addEventListener('DOMContentLoaded', () => {
     return Number.isNaN(n) ? 0 : n;
   }
 
+  function opt(v) {
+    if (v === null || v === undefined || v === '') return null;
+    const n = Number(v);
+    return Number.isFinite(n) ? n : null;
+  }
+
+  /* invoice.pesanan menang; field yang tidak ada di sana diambil dari pemesanan (POST). */
+  function mergeRow(primary, extra) {
+    const a = primary && typeof primary === 'object' ? primary : {};
+    const b = extra && typeof extra === 'object' ? extra : {};
+    return { ...b, ...a };
+  }
+
+  function tierOf(raw) {
+    const tier = raw && raw.tierHarga;
+    if (!tier || typeof tier !== 'object' || Array.isArray(tier)) return null;
+    return {
+      label: tier.label || '',
+      nomorTier: tier.nomorTier,
+      dariKg: tier.dariKg,
+      sampaiKg: tier.sampaiKg,
+      diskonPerKg: tier.diskonPerKg,
+    };
+  }
+
   function normalize(payload) {
     if (!payload) return null;
     const raw = payload.invoice || payload;
-    if (!raw || !(raw.idPembelian || raw.pembeli || raw.pesanan)) return null;
-    const pembeli = raw.pembeli || {};
+    if (!raw || !(raw.idPembelian || raw.pembeli || raw.pesanan || payload.pemesanan)) return null;
+    const pembeli = raw.pembeli || payload.pembeli || {};
     const p = raw.pesanan || {};
-    const rows = Array.isArray(p.kloter) && p.kloter.length ? p.kloter : [p];
+    const alt = payload.pemesanan && typeof payload.pemesanan === 'object' ? payload.pemesanan : {};
+    const merged = mergeRow(p, alt);
+    const pKloter = Array.isArray(p.kloter) && p.kloter.length ? p.kloter : null;
+    const aKloter = Array.isArray(alt.kloter) && alt.kloter.length ? alt.kloter : null;
+    const rows = pKloter
+      ? pKloter.map((k, i) => mergeRow(k, aKloter ? aKloter[i] : null))
+      : aKloter
+        ? aKloter.slice()
+        : [merged];
     const kloter = rows.map((k, i) => {
       const berat = num(k.jumlahPesananKg);
       const harga = num(k.hargaPerKg);
+      const sub = U.lineSubtotal(k);
       return {
         kloter: k.kloter || i + 1,
         prosesPengolahan: k.prosesPengolahan || '—',
         jumlahPesananKg: berat,
         hargaPerKg: harga,
-        subtotal: k.subtotal != null && k.subtotal !== '' ? num(k.subtotal) : Math.round(berat * harga * 100) / 100,
+        subtotal: sub == null ? 0 : sub,
       };
     });
     const subtotal = kloter.reduce((s, k) => s + k.subtotal, 0);
-    const totalHarga = p.totalHarga !== undefined && p.totalHarga !== null && p.totalHarga !== '' ? num(p.totalHarga) : subtotal;
-    const tipeBooking = p.tipeBooking || 'Normal';
+    const totalSrc = Object.prototype.hasOwnProperty.call(p, 'totalHarga') ? p.totalHarga : merged.totalHarga;
+    const totalHarga = totalSrc !== undefined && totalSrc !== null && totalSrc !== '' ? num(totalSrc) : subtotal;
+    const tipeBooking = merged.tipeBooking || 'Normal';
+    const tierHarga = tierOf(merged);
+    const diskonTierPerKg = opt(merged.diskonTierPerKg);
     return {
-      idPembelian: raw.idPembelian || '—',
-      tanggalPemesanan: raw.tanggalPemesanan || '',
-      statusPembayaran: raw.statusPembayaran || 'Belum Lunas',
-      statusPemesanan: raw.statusPemesanan || 'Ordering',
-      keteranganPembayaran: (raw.keteranganPembayaran || '').trim(),
+      idPembelian: raw.idPembelian || payload.idPembelian || '—',
+      tanggalPemesanan: raw.tanggalPemesanan || payload.tanggalPemesanan || '',
+      statusPembayaran: raw.statusPembayaran || payload.statusPembayaran || 'Belum Lunas',
+      statusPemesanan: raw.statusPemesanan || payload.statusPemesanan || 'Ordering',
+      keteranganPembayaran: (raw.keteranganPembayaran || payload.keteranganPembayaran || '').trim(),
       pembeli,
       pesanan: {
-        idPolygon: p.idPolygon || '',
-        petakLabel: [p.namaPolygon, p.idPolygon].filter((x) => x && String(x).trim()).join(' · ') || '—',
+        idPolygon: merged.idPolygon || '',
+        petakLabel: [merged.namaPolygon, merged.idPolygon].filter((x) => x && String(x).trim()).join(' · ') || '—',
         tipeBooking,
         kloter,
-        jumlahPesananKg: kloter.reduce((s, k) => s + k.jumlahPesananKg, 0),
+        jumlahPesananKg:
+          merged.jumlahPesananKg !== undefined && merged.jumlahPesananKg !== null && merged.jumlahPesananKg !== ''
+            ? num(merged.jumlahPesananKg)
+            : kloter.reduce((s, k) => s + k.jumlahPesananKg, 0),
         subtotal,
         totalHarga,
-        kontrak: tipeBooking === 'Kontrak' ? window.AWKontrak.contractSummary(p.kontrak || raw.kontrak, totalHarga) : null,
-        tipeProduk: p.tipeProduk || 'Green Beans',
-        varietas: p.varietas || '—',
-        biayaPajak: num(p.biayaPajak),
-        biayaPengiriman: num(p.biayaPengiriman),
+        tierHarga,
+        diskonTierPerKg,
+        kontrak: tipeBooking === 'Kontrak' ? window.AWKontrak.contractSummary(merged.kontrak || raw.kontrak, totalHarga) : null,
+        tipeProduk: merged.tipeProduk || 'Green Beans',
+        varietas: merged.varietas || '—',
+        biayaPajak: num(merged.biayaPajak),
+        biayaPengiriman: num(merged.biayaPengiriman),
       },
     };
   }
@@ -184,9 +226,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 .join('')}</tbody>
             </table>
           </div>
-          <div class="inv-summary">
+          <div class="inv-summary${U.hasTierDiscount(p) ? ' inv-summary--tier' : ''}">
             <div><span>${esc(I.t('booking.totalQty'))}</span><strong>${esc(U.formatKg(p.jumlahPesananKg))}</strong></div>
             <div><span>${esc(I.t('booking.subtotal'))}</span><strong>${esc(fmt(p.subtotal))}</strong></div>
+            ${
+              U.hasTierDiscount(p)
+                ? `<div class="inv-discount"><strong>${esc(I.t('tier.invoiceDiscount', { label: String(p.tierHarga.label || '').trim() }).trim())}</strong><small>${esc(U.tierNote(p))}</small></div>`
+                : ''
+            }
             ${
               p.biayaPajak > 0 || p.biayaPengiriman > 0
                 ? `<div><span>${esc(I.t('order.tax'))}</span><strong>${esc(fmt(p.biayaPajak))}</strong></div>

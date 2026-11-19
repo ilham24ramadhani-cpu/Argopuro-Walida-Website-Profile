@@ -2057,6 +2057,29 @@ tr:last-child td {
   width: min(420px, 100%);
 }
 
+.inv-summary--tier {
+  width: min(360px, 100%);
+}
+
+.inv-summary > .inv-discount {
+  display: grid;
+  gap: 2px;
+  padding-top: 8px;
+  margin-top: 2px;
+  border-top: 1px solid var(--inv-border);
+}
+
+.inv-discount strong {
+  font-weight: 800;
+}
+
+.inv-discount small {
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--inv-muted);
+}
+
 .inv-total-band {
   background: var(--inv-green-dark);
   color: #fff;
@@ -3073,6 +3096,20 @@ tr:last-child td {
 
 .kloter-table--priced table {
   min-width: 560px;
+}
+
+.price-was {
+  text-decoration: line-through;
+  text-decoration-color: var(--ink);
+  text-decoration-thickness: 1.5px;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.price-off {
+  color: var(--danger);
+  font-weight: 800;
+  white-space: nowrap;
 }
 
 .kloter-table tfoot td {
