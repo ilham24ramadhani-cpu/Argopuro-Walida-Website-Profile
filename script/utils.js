@@ -172,6 +172,41 @@
     });
   }
 
+  /* Jumlah rupiah dari field API per kg. Tidak mengubah totalHarga. */
+  function tierTotals(order) {
+    if (!hasTierDiscount(order)) return null;
+    const lines = Array.isArray(order.kloter) && order.kloter.length ? order.kloter : [order];
+    let diskon = 0;
+    let asli = 0;
+    lines.forEach((k) => {
+      const kg = finiteNumber(k.jumlahPesananKg);
+      if (kg == null) return;
+      const cut = finiteNumber(k.diskonPerKg);
+      const cutUse = cut != null ? cut : finiteNumber(order.diskonTierPerKg);
+      const before = finiteNumber(k.hargaPerKgAsli);
+      const beforeUse = before != null ? before : finiteNumber(order.hargaPerKgAsli);
+      if (cutUse != null && cutUse > 0) diskon += cutUse * kg;
+      if (beforeUse != null) asli += beforeUse * kg;
+    });
+    return {
+      totalDiskon: Math.round(diskon * 100) / 100,
+      totalHargaAsli: Math.round(asli * 100) / 100,
+    };
+  }
+
+  /* Nilai baris sebelum diskon: harga asli × kg dari API. */
+  function lineGross(row, order) {
+    const kg = finiteNumber(row && row.jumlahPesananKg);
+    const before = finiteNumber(row && row.hargaPerKgAsli);
+    const beforeUse = before != null ? before : finiteNumber(order && order.hargaPerKgAsli);
+    if (kg != null && beforeUse != null) return Math.round(kg * beforeUse * 100) / 100;
+    const net = lineSubtotal(row);
+    const cut = finiteNumber(row && row.diskonPerKg);
+    const cutUse = cut != null ? cut : finiteNumber(order && order.diskonTierPerKg);
+    if (net != null && kg != null && cutUse != null && cutUse > 0) return Math.round((net + cutUse * kg) * 100) / 100;
+    return net;
+  }
+
   /* Subtotal baris dari API. Jika field kosong: kg × harga setelah diskon, bukan harga asli. */
   function lineSubtotal(row) {
     if (!row || typeof row !== 'object') return null;
@@ -235,6 +270,8 @@
     hasTierDiscount,
     tierTitle,
     tierNote,
+    tierTotals,
+    lineGross,
     lineSubtotal,
     escapeHtml,
     avatarHtml,

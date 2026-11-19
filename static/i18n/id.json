@@ -262,6 +262,8 @@
     "lineDiscount": "Diskon / kg",
     "lineAfter": "Setelah diskon / kg",
     "invoiceDiscount": "Diskon {label}",
+    "totalHarga": "Total harga",
+    "totalDiskon": "Total diskon",
     "note": "{from} – {to}, potongan {amount} / kg"
   },
   "order": {

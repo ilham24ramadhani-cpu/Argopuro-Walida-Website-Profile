@@ -114,7 +114,16 @@ document.addEventListener('DOMContentLoaded', () => {
       ${row('tier.name', txt(U.tierTitle(o)))}
       <div><dt>${esc(I.t('tier.originalPerKg'))}</dt><dd>${asliHtml}</dd></div>
       <div><dt>${esc(I.t('tier.discountPerKg'))}</dt><dd class="price-off">− ${esc(U.formatRp(o.diskonTierPerKg))}</dd></div>
-      ${row('tier.afterPerKg', txt(U.formatRp(o.hargaPerKg)))}`;
+      ${row('tier.afterPerKg', txt(U.formatRp(o.hargaPerKg)))}
+      ${tierTotalRows(o)}`;
+  }
+
+  function tierTotalRows(o) {
+    const totals = U.tierTotals(o);
+    if (!totals || !(totals.totalHargaAsli > 0) || !(totals.totalDiskon > 0)) return '';
+    return `
+      ${row('tier.totalHarga', txt(U.formatRp(totals.totalHargaAsli)))}
+      <div><dt>${esc(I.t('tier.totalDiskon'))}</dt><dd class="price-off">− ${esc(U.formatRp(totals.totalDiskon))}</dd></div>`;
   }
 
   function goodsSubtotal(o) {

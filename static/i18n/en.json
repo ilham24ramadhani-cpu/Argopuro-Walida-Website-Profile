@@ -262,6 +262,8 @@
     "lineDiscount": "Discount / kg",
     "lineAfter": "After discount / kg",
     "invoiceDiscount": "Discount {label}",
+    "totalHarga": "Total price",
+    "totalDiskon": "Total discount",
     "note": "{from} – {to}, discount {amount} / kg"
   },
   "order": {

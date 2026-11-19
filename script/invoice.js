@@ -63,6 +63,8 @@ document.addEventListener('DOMContentLoaded', () => {
         prosesPengolahan: k.prosesPengolahan || '—',
         jumlahPesananKg: berat,
         hargaPerKg: harga,
+        hargaPerKgAsli: opt(k.hargaPerKgAsli),
+        diskonPerKg: opt(k.diskonPerKg),
         subtotal: sub == null ? 0 : sub,
       };
     });
@@ -90,6 +92,7 @@ document.addEventListener('DOMContentLoaded', () => {
             : kloter.reduce((s, k) => s + k.jumlahPesananKg, 0),
         subtotal,
         totalHarga,
+        hargaPerKgAsli: opt(merged.hargaPerKgAsli),
         tierHarga,
         diskonTierPerKg,
         kontrak: tipeBooking === 'Kontrak' ? window.AWKontrak.contractSummary(merged.kontrak || raw.kontrak, totalHarga) : null,
@@ -145,6 +148,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const L = APP.letterhead || {};
     const p = inv.pesanan;
     const fmt = (n) => U.formatNumber(n, 0);
+    const tierOn = U.hasTierDiscount(p);
+    const linePrice = (k) => {
+      if (!tierOn) return k.hargaPerKg;
+      if (k.hargaPerKgAsli != null) return k.hargaPerKgAsli;
+      if (p.hargaPerKgAsli != null) return p.hargaPerKgAsli;
+      return k.hargaPerKg;
+    };
+    const lineAmount = (k) => (tierOn ? U.lineGross(k, p) : k.subtotal);
     const pembayaran = inv.keteranganPembayaran || APP.paymentDefault || '';
     root.innerHTML = `
       <div class="invoice-toolbar no-print">
@@ -219,8 +230,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 <td>${esc(k.prosesPengolahan)}</td>
                 <td>${esc(p.petakLabel)}</td>
                 <td class="num">${esc(U.formatNumber(k.jumlahPesananKg, 2))}</td>
-                <td class="num">${esc(fmt(k.hargaPerKg))}</td>
-                <td class="num">${esc(fmt(k.subtotal))}</td>
+                <td class="num">${esc(fmt(linePrice(k)))}</td>
+                <td class="num">${esc(fmt(lineAmount(k)))}</td>
               </tr>`,
                 )
                 .join('')}</tbody>
@@ -228,12 +239,29 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
           <div class="inv-summary${U.hasTierDiscount(p) ? ' inv-summary--tier' : ''}">
             <div><span>${esc(I.t('booking.totalQty'))}</span><strong>${esc(U.formatKg(p.jumlahPesananKg))}</strong></div>
-            <div><span>${esc(I.t('booking.subtotal'))}</span><strong>${esc(fmt(p.subtotal))}</strong></div>
+            ${(() => {
+              const totals = U.hasTierDiscount(p) ? U.tierTotals(p) : null;
+              const hargaAsli = totals && totals.totalHargaAsli > 0 ? totals.totalHargaAsli : null;
+              const potongan = totals && totals.totalDiskon > 0 ? totals.totalDiskon : null;
+              const label = I.t('tier.invoiceDiscount', { label: String((p.tierHarga && p.tierHarga.label) || '').trim() }).trim();
+              const charges = p.biayaPajak > 0 || p.biayaPengiriman > 0;
+              return `
             ${
-              U.hasTierDiscount(p)
-                ? `<div class="inv-discount"><strong>${esc(I.t('tier.invoiceDiscount', { label: String(p.tierHarga.label || '').trim() }).trim())}</strong><small>${esc(U.tierNote(p))}</small></div>`
+              hargaAsli != null
+                ? `<div><span>${esc(I.t('tier.totalHarga'))}</span><strong>${esc(U.formatRp(hargaAsli))}</strong></div>`
+                : `<div><span>${esc(I.t('booking.subtotal'))}</span><strong>${esc(fmt(p.subtotal))}</strong></div>`
+            }
+            ${
+              potongan != null
+                ? `<div class="inv-discount"><div class="inv-discount-row"><span>${esc(label)}</span><strong class="price-off">− ${esc(U.formatRp(potongan))}</strong></div><small>${esc(U.tierNote(p))}</small></div>`
                 : ''
             }
+            ${
+              hargaAsli != null && charges
+                ? `<div><span>${esc(I.t('booking.subtotal'))}</span><strong>${esc(fmt(p.subtotal))}</strong></div>`
+                : ''
+            }`;
+            })()}
             ${
               p.biayaPajak > 0 || p.biayaPengiriman > 0
                 ? `<div><span>${esc(I.t('order.tax'))}</span><strong>${esc(fmt(p.biayaPajak))}</strong></div>
